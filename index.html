@@ -4,463 +4,717 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Propuesta Interactiva: Servidor LLM Autoalojado con OpenWebUI</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="stylesheet" href="styles.css">
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --primary-dark: #1d4ed8;
+            --secondary: #f59e0b;
+            --accent: #10b981;
+            --dark: #0f172a;
+            --gray-50: #f8fafc;
+            --gray-100: #f1f5f9;
+            --gray-200: #e2e8f0;
+            --gray-300: #cbd5e1;
+            --gray-600: #475569;
+            --gray-700: #334155;
+            --gray-800: #1e293b;
+            --glass: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.2);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+            overflow-x: hidden;
+        }
+
+        /* Animated background */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            animation: gradientShift 8s ease infinite;
+        }
+
+        @keyframes gradientShift {
+            0% { background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%); }
+            50% { background: linear-gradient(135deg, #f093fb 0%, #667eea 50%, #764ba2 100%); }
+            100% { background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%); }
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        /* Header */
+        .header {
+            padding: 2rem 0;
+            position: relative;
+            text-align: center;
+            background: rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E") repeat;
+            opacity: 0.5;
+        }
+
+        .logo {
+            display: inline-flex;
+            align-items: center;
+            gap: 1rem;
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            background: linear-gradient(45deg, #fff, #e2e8f0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .logo i {
+            color: var(--secondary);
+            text-shadow: 0 0 30px rgba(245, 158, 11, 0.5);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .subtitle {
+            font-size: 1.25rem;
+            opacity: 0.9;
+            font-weight: 400;
+        }
+
+        /* Navigation */
+        .nav {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--glass-border);
+            padding: 1rem 0;
+        }
+
+        .nav-container {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 50px;
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .nav-item:hover, .nav-item.active {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Main Content */
+        .main {
+            padding: 4rem 0;
+        }
+
+        .section {
+            display: none;
+            margin-bottom: 4rem;
+        }
+
+        .section.active {
+            display: block;
+            animation: fadeInUp 0.6s ease;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Cards */
+        .card {
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .card-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .card-title i {
+            color: var(--secondary);
+            text-shadow: 0 0 20px rgba(245, 158, 11, 0.5);
+        }
+
+        /* Hero Section */
+        .hero {
+            text-align: center;
+            padding: 4rem 0;
+        }
+
+        .hero-title {
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(45deg, #fff, #e2e8f0, #cbd5e1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1.2;
+        }
+
+        .hero-description {
+            font-size: 1.25rem;
+            opacity: 0.9;
+            max-width: 800px;
+            margin: 0 auto 3rem;
+            line-height: 1.6;
+        }
+
+        .highlight-box {
+            background: linear-gradient(135deg, var(--secondary), #ef4444);
+            padding: 2rem;
+            border-radius: 20px;
+            margin: 2rem 0;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .highlight-box::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(30deg); }
+            100% { transform: translateX(100%) translateY(100%) rotate(30deg); }
+        }
+
+        .benefits-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin: 3rem 0;
+        }
+
+        .benefit-card {
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .benefit-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary), var(--accent));
+        }
+
+        .benefit-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+        }
+
+        .benefit-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(45deg, var(--secondary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Phase Timeline */
+        .phases-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin: 3rem 0;
+        }
+
+        .phase-card {
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 2rem;
+            text-align: center;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .phase-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .phase-number {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 0 auto 1rem;
+            box-shadow: 0 10px 30px rgba(59, 130, 246, 0.3);
+        }
+
+        /* Chart Container */
+        .chart-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 2rem;
+            margin: 2rem 0;
+            border: 1px solid var(--glass-border);
+        }
+
+        /* Responsive Tables */
+        .table-container {
+            overflow-x: auto;
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            margin: 2rem 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        th {
+            background: rgba(255, 255, 255, 0.1);
+            font-weight: 600;
+        }
+
+        tr:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        /* Code Blocks */
+        .code-block {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            font-family: 'Monaco', monospace;
+            font-size: 0.9rem;
+            position: relative;
+            overflow-x: auto;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: var(--secondary);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            padding: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .copy-btn:hover {
+            background: #d97706;
+            transform: scale(1.1);
+        }
+
+        /* Recommendations */
+        .rec-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin: 3rem 0;
+        }
+
+        .rec-card {
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 2rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .rec-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent), var(--secondary));
+        }
+
+        .rec-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .priority-high {
+            border-left: 4px solid #ef4444;
+        }
+
+        .priority-medium {
+            border-left: 4px solid var(--secondary);
+        }
+
+        .priority-low {
+            border-left: 4px solid var(--accent);
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 1rem;
+            }
+
+            .hero-title {
+                font-size: 2.5rem;
+            }
+
+            .nav-container {
+                gap: 1rem;
+            }
+
+            .nav-item {
+                padding: 0.5rem 1rem;
+                font-size: 0.9rem;
+            }
+
+            .benefits-grid,
+            .phases-grid,
+            .rec-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .card {
+                padding: 1.5rem;
+            }
+
+            .card-title {
+                font-size: 1.5rem;
+            }
+        }
+
+        /* Scroll animations */
+        .animate-on-scroll {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.6s ease;
+        }
+
+        .animate-on-scroll.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Loading states */
+        .loading {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .loading::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            animation: loading 1.5s infinite;
+        }
+
+        @keyframes loading {
+            100% { left: 100%; }
+        }
+    </style>
 </head>
 <body>
-    <!-- Mobile Menu Toggle -->
-    <div class="mobile-menu-toggle">
-        <i class="fas fa-bars"></i>
-    </div>
-
-    <!-- Sidebar -->
-    <aside class="sidebar">
-        <div class="sidebar-header">
+    <div class="bg-animation"></div>
+    
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
             <div class="logo">
                 <i class="fas fa-server"></i>
                 <div>
-                    <h1 class="logo-title">OpenWebUI</h1>
-                    <p class="logo-subtitle">Propuesta Técnica</p>
+                    <div>OpenWebUI</div>
+                    <div style="font-size: 1rem; font-weight: 400; opacity: 0.8;">Propuesta Técnica</div>
                 </div>
             </div>
+            <p class="subtitle">Servidor LLM Autoalojado para Implementación Empresarial</p>
         </div>
-        
-        <nav class="sidebar-nav">
-            <a href="#introduccion" class="nav-item">
-                <i class="fas fa-home"></i>
-                <span>Introducción</span>
-            </a>
-            
-            <div class="nav-section">
-                <a href="#plan" class="nav-item">
-                    <i class="fas fa-tasks"></i>
-                    <span>Plan de Implementación</span>
-                    <i class="fas fa-chevron-down toggle-icon"></i>
-                </a>
-                <div class="sub-nav">
-                    <a href="#fase1" class="sub-nav-item">
-                        <i class="fas fa-cog"></i>
-                        <span>Fase 1: Preparación</span>
-                    </a>
-                    <a href="#fase2" class="sub-nav-item">
-                        <i class="fas fa-download"></i>
-                        <span>Fase 2: Ollama</span>
-                    </a>
-                    <a href="#fase3" class="sub-nav-item">
-                        <i class="fas fa-globe"></i>
-                        <span>Fase 3: OpenWebUI</span>
-                    </a>
-                    <a href="#fase4" class="sub-nav-item">
-                        <i class="fas fa-key"></i>
-                        <span>Fase 4: API Keys</span>
-                    </a>
-                    <a href="#fase5" class="sub-nav-item">
-                        <i class="fas fa-shield-alt"></i>
-                        <span>Fase 5: Seguridad</span>
-                    </a>
-                    <a href="#fase6" class="sub-nav-item">
-                        <i class="fas fa-chart-line"></i>
-                        <span>Fase 6: Escalabilidad</span>
-                    </a>
-                </div>
-            </div>
-            
-            <a href="#gantt" class="nav-item">
-                <i class="fas fa-calendar-alt"></i>
-                <span>Cronograma</span>
-            </a>
-            
-            <a href="#costos" class="nav-item">
-                <i class="fas fa-dollar-sign"></i>
-                <span>Costos</span>
-            </a>
-            
-            <a href="#recomendaciones" class="nav-item">
-                <i class="fas fa-lightbulb"></i>
-                <span>Recomendaciones</span>
-            </a>
-            
-            <a href="#conclusion" class="nav-item">
-                <i class="fas fa-flag-checkered"></i>
-                <span>Conclusión</span>
-            </a>
-        </nav>
+    </header>
 
-        <div class="sidebar-footer">
-            <div class="project-summary">
-                <div class="summary-item">
-                    <span class="summary-number">61</span>
-                    <span class="summary-label">Horas</span>
-                </div>
-                <div class="summary-item">
-                    <span class="summary-number">6</span>
-                    <span class="summary-label">Fases</span>
-                </div>
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="container">
+            <div class="nav-container">
+                <a href="#introduccion" class="nav-item active" onclick="showSection('introduccion', this)">
+                    <i class="fas fa-home"></i>
+                    Introducción
+                </a>
+                <a href="#plan" class="nav-item" onclick="showSection('plan', this)">
+                    <i class="fas fa-tasks"></i>
+                    Plan
+                </a>
+                <a href="#cronograma" class="nav-item" onclick="showSection('cronograma', this)">
+                    <i class="fas fa-calendar-alt"></i>
+                    Cronograma
+                </a>
+                <a href="#costos" class="nav-item" onclick="showSection('costos', this)">
+                    <i class="fas fa-dollar-sign"></i>
+                    Costos
+                </a>
+                <a href="#recomendaciones" class="nav-item" onclick="showSection('recomendaciones', this)">
+                    <i class="fas fa-lightbulb"></i>
+                    Recomendaciones
+                </a>
             </div>
         </div>
-    </aside>
+    </nav>
 
     <!-- Main Content -->
-    <main class="main-content">
-        <!-- Header -->
-        <header class="content-header">
-            <div class="header-gradient"></div>
-            <div class="header-content">
-                <h1 class="page-title">Servidor LLM Autoalojado</h1>
-                <p class="page-subtitle">Propuesta Técnica para Implementación Empresarial</p>
-            </div>
-        </header>
-
-        <!-- Content Sections -->
-        <div class="content-container">
+    <main class="main">
+        <div class="container">
             <!-- Introducción -->
-            <section id="introduccion" class="content-section active">
-                <div class="section-header">
-                    <h2 class="section-title">
-                        <i class="fas fa-info-circle"></i>
-                        Introducción
-                    </h2>
-                </div>
-                
-                <div class="content-card">
-                    <div class="highlight-box">
-                        <i class="fas fa-target"></i>
-                        <div>
-                            <h3>Objetivo Principal</h3>
-                            <p>Implementar un servidor de Modelos de Lenguaje Grandes (LLM) autoalojado como alternativa local a servicios como ChatGPT, permitiendo control total sobre la infraestructura y datos.</p>
-                        </div>
-                    </div>
-                    
-                    <p class="content-text">
-                        Esta propuesta detalla un plan estratégico para la implementación de un servidor de modelos de lenguaje grandes (LLM) autoalojado, utilizando OpenWebUI como interfaz y motor de gestión. El objetivo principal es ofrecer a las empresas una alternativa local (on-premises) a servicios como la API de ChatGPT, permitiendo la generación y administración de claves API para el consumo de modelos de manera controlada y segura dentro de la propia infraestructura del cliente.
+            <section id="introduccion" class="section active">
+                <div class="hero">
+                    <h1 class="hero-title">Transforme su Infraestructura AI</h1>
+                    <p class="hero-description">
+                        Implemente un servidor de modelos de lenguaje grandes (LLM) autoalojado con control total 
+                        sobre su infraestructura y datos. Una alternativa local profesional a servicios como ChatGPT.
                     </p>
-                    
-                    <div class="benefits-grid">
-                        <div class="benefit-item">
-                            <i class="fas fa-lock"></i>
-                            <h4>Privacidad Total</h4>
-                            <p>Control completo sobre los datos sin dependencia de servicios externos</p>
-                        </div>
-                        <div class="benefit-item">
-                            <i class="fas fa-coins"></i>
-                            <h4>Control de Costos</h4>
-                            <p>Eliminación de costos variables por uso de APIs externas</p>
-                        </div>
-                        <div class="benefit-item">
-                            <i class="fas fa-tools"></i>
-                            <h4>Personalización</h4>
-                            <p>Adaptación completa a necesidades específicas empresariales</p>
-                        </div>
+                </div>
+
+                <div class="highlight-box">
+                    <h3 style="font-size: 1.5rem; margin-bottom: 1rem;">
+                        <i class="fas fa-target"></i>
+                        Objetivo Principal
+                    </h3>
+                    <p style="font-size: 1.1rem; opacity: 0.95;">
+                        Implementar un servidor LLM autoalojado utilizando OpenWebUI como interfaz, 
+                        permitiendo la generación y administración de claves API para el consumo controlado y seguro de modelos.
+                    </p>
+                </div>
+
+                <div class="benefits-grid">
+                    <div class="benefit-card">
+                        <i class="fas fa-shield-alt benefit-icon"></i>
+                        <h3>Privacidad Total</h3>
+                        <p>Control completo sobre los datos sin dependencia de servicios externos. Sus datos nunca salen de su infraestructura.</p>
+                    </div>
+                    <div class="benefit-card">
+                        <i class="fas fa-coins benefit-icon"></i>
+                        <h3>Control de Costos</h3>
+                        <p>Eliminación de costos variables por uso de APIs externas. Inversión única con ROI predecible.</p>
+                    </div>
+                    <div class="benefit-card">
+                        <i class="fas fa-cogs benefit-icon"></i>
+                        <h3>Personalización</h3>
+                        <p>Adaptación completa a necesidades específicas empresariales. Configure según sus requerimientos exactos.</p>
                     </div>
                 </div>
             </section>
 
             <!-- Plan de Implementación -->
-            <section id="plan" class="content-section">
-                <div class="section-header">
-                    <h2 class="section-title">
+            <section id="plan" class="section">
+                <div class="card">
+                    <h2 class="card-title">
                         <i class="fas fa-tasks"></i>
                         Plan Detallado de Implementación
                     </h2>
-                </div>
-
-                <div class="phases-overview">
-                    <div class="phase-card">
-                        <div class="phase-number">1</div>
-                        <h3>Preparación</h3>
-                        <p>Configuración del entorno servidor</p>
-                        <div class="phase-time">8 horas</div>
-                    </div>
-                    <div class="phase-card">
-                        <div class="phase-number">2</div>
-                        <h3>Ollama</h3>
-                        <p>Instalación y configuración</p>
-                        <div class="phase-time">4 horas</div>
-                    </div>
-                    <div class="phase-card">
-                        <div class="phase-number">3</div>
-                        <h3>OpenWebUI</h3>
-                        <p>Despliegue e integración</p>
-                        <div class="phase-time">4 horas</div>
-                    </div>
-                    <div class="phase-card">
-                        <div class="phase-number">4</div>
-                        <h3>API Keys</h3>
-                        <p>Configuración y gestión</p>
-                        <div class="phase-time">6 horas</div>
-                    </div>
-                    <div class="phase-card">
-                        <div class="phase-number">5</div>
-                        <h3>Seguridad</h3>
-                        <p>Implementación básica</p>
-                        <div class="phase-time">8 horas</div>
-                    </div>
-                    <div class="phase-card">
-                        <div class="phase-number">6</div>
-                        <h3>Escalabilidad</h3>
-                        <p>Optimización inicial</p>
-                        <div class="phase-time">4 horas</div>
-                    </div>
-                </div>
-
-                <!-- Detailed Phase Content -->
-                <div id="fase1" class="phase-detail">
-                    <h3 class="phase-title">
-                        <i class="fas fa-cog"></i>
-                        Fase 1: Preparación del Entorno del Servidor
-                    </h3>
-                    <div class="content-card">
-                        <h4>Selección y Configuración del Hardware</h4>
-                        <div class="spec-grid">
-                            <div class="spec-item">
-                                <i class="fas fa-microchip"></i>
-                                <div>
-                                    <strong>CPU</strong>
-                                    <p>Intel 11ª gen+ o AMD Zen 4+ con soporte AVX512</p>
-                                </div>
-                            </div>
-                            <div class="spec-item">
-                                <i class="fas fa-memory"></i>
-                                <div>
-                                    <strong>RAM</strong>
-                                    <p>Mínimo 16 GB, recomendado 32 GB+ DDR5</p>
-                                </div>
-                            </div>
-                            <div class="spec-item">
-                                <i class="fas fa-hdd"></i>
-                                <div>
-                                    <strong>Almacenamiento</strong>
-                                    <p>Mínimo 50 GB SSD NVMe</p>
-                                </div>
-                            </div>
-                            <div class="spec-item">
-                                <i class="fas fa-desktop"></i>
-                                <div>
-                                    <strong>GPU</strong>
-                                    <p>NVIDIA con VRAM suficiente (4GB+ recomendado)</p>
-                                </div>
-                            </div>
+                    
+                    <div class="phases-grid">
+                        <div class="phase-card">
+                            <div class="phase-number">1</div>
+                            <h3>Preparación</h3>
+                            <p>Configuración del entorno servidor</p>
+                            <div style="margin-top: 1rem; color: var(--secondary); font-weight: 600;">8 horas</div>
                         </div>
-                        
-                        <h4>Instalación del Sistema Base</h4>
-                        <ul class="feature-list">
-                            <li><i class="fas fa-check"></i> Ubuntu Server 22.04/24.04 LTS o Debian</li>
-                            <li><i class="fas fa-check"></i> Docker Engine y Docker Compose</li>
-                            <li><i class="fas fa-check"></i> Configuración de red estática</li>
-                            <li><i class="fas fa-check"></i> Configuración de firewall básico</li>
+                        <div class="phase-card">
+                            <div class="phase-number">2</div>
+                            <h3>Ollama</h3>
+                            <p>Instalación y configuración del motor LLM</p>
+                            <div style="margin-top: 1rem; color: var(--secondary); font-weight: 600;">4 horas</div>
+                        </div>
+                        <div class="phase-card">
+                            <div class="phase-number">3</div>
+                            <h3>OpenWebUI</h3>
+                            <p>Despliegue e integración de la interfaz</p>
+                            <div style="margin-top: 1rem; color: var(--secondary); font-weight: 600;">4 horas</div>
+                        </div>
+                        <div class="phase-card">
+                            <div class="phase-number">4</div>
+                            <h3>API Keys</h3>
+                            <p>Configuración y gestión de accesos</p>
+                            <div style="margin-top: 1rem; color: var(--secondary); font-weight: 600;">6 horas</div>
+                        </div>
+                        <div class="phase-card">
+                            <div class="phase-number">5</div>
+                            <h3>Seguridad</h3>
+                            <p>Implementación de medidas de seguridad</p>
+                            <div style="margin-top: 1rem; color: var(--secondary); font-weight: 600;">8 horas</div>
+                        </div>
+                        <div class="phase-card">
+                            <div class="phase-number">6</div>
+                            <h3>Escalabilidad</h3>
+                            <p>Optimización y configuración para crecimiento</p>
+                            <div style="margin-top: 1rem; color: var(--secondary); font-weight: 600;">4 horas</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3 style="color: var(--secondary); margin-bottom: 1rem;">Detalles Técnicos Clave</h3>
+                    
+                    <div style="margin: 2rem 0;">
+                        <h4><i class="fas fa-server"></i> Requerimientos de Hardware</h4>
+                        <ul style="margin: 1rem 0; list-style: none;">
+                            <li style="padding: 0.5rem 0;"><i class="fas fa-check" style="color: var(--accent); margin-right: 0.5rem;"></i>CPU: Intel 11ª gen+ o AMD Zen 4+ con soporte AVX512</li>
+                            <li style="padding: 0.5rem 0;"><i class="fas fa-check" style="color: var(--accent); margin-right: 0.5rem;"></i>RAM: Mínimo 16 GB, recomendado 32 GB+ DDR5</li>
+                            <li style="padding: 0.5rem 0;"><i class="fas fa-check" style="color: var(--accent); margin-right: 0.5rem;"></i>Almacenamiento: Mínimo 50 GB SSD NVMe</li>
+                            <li style="padding: 0.5rem 0;"><i class="fas fa-check" style="color: var(--accent); margin-right: 0.5rem;"></i>GPU: NVIDIA con VRAM suficiente (4GB+ recomendado)</li>
                         </ul>
                     </div>
-                </div>
 
-                <div id="fase2" class="phase-detail">
-                    <h3 class="phase-title">
-                        <i class="fas fa-download"></i>
-                        Fase 2: Instalación y Configuración de Ollama
-                    </h3>
-                    <div class="content-card">
-                        <div class="code-section">
-                            <h4>Instalación de Ollama</h4>
-                            <div class="code-block">
-                                <button class="copy-btn">
-                                    <i class="fas fa-copy"></i>
-                                </button>
-                                <pre><code>curl -fsSL https://ollama.com/install.sh | sh</code></pre>
-                            </div>
-                        </div>
-                        
-                        <div class="code-section">
-                            <h4>Configuración del Servicio</h4>
-                            <div class="code-block">
-                                <button class="copy-btn">
-                                    <i class="fas fa-copy"></i>
-                                </button>
-                                <pre><code>sudo systemctl enable ollama
+                    <div style="margin: 2rem 0;">
+                        <h4><i class="fas fa-code"></i> Ejemplo de Instalación</h4>
+                        <div class="code-block">
+                            <button class="copy-btn" onclick="copyCode(this)">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                            <pre><code># Instalación de Ollama
+curl -fsSL https://ollama.com/install.sh | sh
+
+# Configuración del servicio
+sudo systemctl enable ollama
 sudo systemctl start ollama
-sudo systemctl status ollama</code></pre>
-                            </div>
-                        </div>
 
-                        <div class="info-box">
-                            <i class="fas fa-info-circle"></i>
-                            <p><strong>Nota:</strong> La API de Ollama escucha por defecto en localhost:11434. Para acceso externo, configurar OLLAMA_HOST=0.0.0.0</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Continue with other phases... -->
-                <div id="fase3" class="phase-detail">
-                    <h3 class="phase-title">
-                        <i class="fas fa-globe"></i>
-                        Fase 3: Instalación y Configuración de OpenWebUI
-                    </h3>
-                    <div class="content-card">
-                        <div class="code-section">
-                            <h4>Despliegue con Docker</h4>
-                            <div class="code-block">
-                                <button class="copy-btn">
-                                    <i class="fas fa-copy"></i>
-                                </button>
-                                <pre><code>sudo docker run -d -p 8080:8080 \
+# Despliegue de OpenWebUI con Docker
+sudo docker run -d -p 8080:8080 \
     --gpus all \
     --add-host=host.docker.internal:host-gateway \
     -v open-webui:/app/backend/data \
     -e OLLAMA_BASE_URL=http://host.docker.internal:11434 \
     --name open-webui --restart always \
     ghcr.io/open-webui/open-webui:cuda</code></pre>
-                            </div>
-                        </div>
-                        
-                        <div class="warning-box">
-                            <i class="fas fa-exclamation-triangle"></i>
-                            <p><strong>Importante:</strong> El volumen persistente (-v open-webui:/app/backend/data) es crítico para mantener configuraciones y datos de usuario.</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div id="fase4" class="phase-detail">
-                    <h3 class="phase-title">
-                        <i class="fas fa-key"></i>
-                        Fase 4: Configuración del API y Gestión de API Keys
-                    </h3>
-                    <div class="content-card">
-                        <div class="api-features">
-                            <div class="api-feature">
-                                <i class="fas fa-shield-alt"></i>
-                                <h4>Autenticación Bearer Token</h4>
-                                <p>Cada clave API actúa como Bearer Token en headers Authorization</p>
-                            </div>
-                            <div class="api-feature">
-                                <i class="fas fa-exchange-alt"></i>
-                                <h4>Compatibilidad OpenAI</h4>
-                                <p>Endpoint /api/chat/completions compatible con API de OpenAI</p>
-                            </div>
-                            <div class="api-feature">
-                                <i class="fas fa-list"></i>
-                                <h4>Gestión de Modelos</h4>
-                                <p>Endpoint /api/models para listar modelos disponibles</p>
-                            </div>
-                        </div>
-                        
-                        <div class="critical-note">
-                            <i class="fas fa-exclamation-circle"></i>
-                            <h4>Punto Crítico</h4>
-                            <p>La gestión centralizada de API Keys para clientes empresariales es fundamental para el modelo de negocio. Se requiere verificar la madurez de estas funcionalidades en OpenWebUI.</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div id="fase5" class="phase-detail">
-                    <h3 class="phase-title">
-                        <i class="fas fa-shield-alt"></i>
-                        Fase 5: Implementación de Seguridad Básica
-                    </h3>
-                    <div class="content-card">
-                        <h4>Configuración de Nginx Reverse Proxy</h4>
-                        <div class="code-block">
-                            <button class="copy-btn">
-                                <i class="fas fa-copy"></i>
-                            </button>
-                            <pre><code>server {
-    listen 80;
-    server_name tu-dominio.com;
-    
-    location / {
-        proxy_pass http://127.0.0.1:8080;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        
-        # WebSockets support
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
-    }
-}</code></pre>
-                        </div>
-                        
-                        <div class="security-checklist">
-                            <h4>Lista de Verificación de Seguridad</h4>
-                            <div class="checklist-item">
-                                <i class="fas fa-check-circle"></i>
-                                <span>Certificados SSL/TLS (Let's Encrypt recomendado)</span>
-                            </div>
-                            <div class="checklist-item">
-                                <i class="fas fa-check-circle"></i>
-                                <span>Configuración de firewall (UFW)</span>
-                            </div>
-                            <div class="checklist-item">
-                                <i class="fas fa-check-circle"></i>
-                                <span>Gestión segura de API Keys</span>
-                            </div>
-                            <div class="checklist-item">
-                                <i class="fas fa-check-circle"></i>
-                                <span>Rotación periódica de claves</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div id="fase6" class="phase-detail">
-                    <h3 class="phase-title">
-                        <i class="fas fa-chart-line"></i>
-                        Fase 6: Consideraciones de Escalabilidad
-                    </h3>
-                    <div class="content-card">
-                        <div class="scalability-options">
-                            <div class="scale-option">
-                                <i class="fas fa-cogs"></i>
-                                <h4>Modelos de Tareas Dedicados</h4>
-                                <p>Usar modelos ligeros para tareas secundarias (títulos, etiquetas, etc.)</p>
-                            </div>
-                            <div class="scale-option">
-                                <i class="fas fa-server"></i>
-                                <h4>Múltiples Backends Ollama</h4>
-                                <p>Balanceo de carga entre múltiples instancias</p>
-                            </div>
-                            <div class="scale-option">
-                                <i class="fas fa-chart-area"></i>
-                                <h4>Monitorización Básica</h4>
-                                <p>Endpoints /health y /api/models para verificaciones</p>
-                            </div>
                         </div>
                     </div>
                 </div>
             </section>
 
             <!-- Cronograma -->
-            <section id="gantt" class="content-section">
-                <div class="section-header">
-                    <h2 class="section-title">
+            <section id="cronograma" class="section">
+                <div class="card">
+                    <h2 class="card-title">
                         <i class="fas fa-calendar-alt"></i>
                         Cronograma del Proyecto
                     </h2>
-                </div>
-                
-                <div class="content-card">
-                    <div class="timeline-overview">
-                        <div class="timeline-item">
-                            <div class="timeline-week">Semana 1</div>
-                            <div class="timeline-phases">Fases 0-2</div>
-                            <div class="timeline-hours">19 horas</div>
-                        </div>
-                        <div class="timeline-item">
-                            <div class="timeline-week">Semana 2</div>
-                            <div class="timeline-phases">Fases 3-5</div>
-                            <div class="timeline-hours">18 horas</div>
-                        </div>
-                        <div class="timeline-item">
-                            <div class="timeline-week">Semana 3</div>
-                            <div class="timeline-phases">Fases 6-8</div>
-                            <div class="timeline-hours">28 horas</div>
-                        </div>
-                    </div>
                     
-                    <div class="gantt-table-container">
-                        <table class="gantt-table">
+                    <div class="chart-container">
+                        <canvas id="timelineChart" width="400" height="200"></canvas>
+                    </div>
+
+                    <div class="table-container">
+                        <table>
                             <thead>
                                 <tr>
                                     <th>Fase del Proyecto</th>
@@ -472,114 +726,85 @@ sudo systemctl status ollama</code></pre>
                             </thead>
                             <tbody>
                                 <tr>
-                                    <td>0. Planificación y Diseño</td>
-                                    <td>3h</td>
-                                    <td><div class="gantt-bar" style="width: 100%"></div></td>
-                                    <td></td>
-                                    <td></td>
-                                </tr>
-                                <tr>
-                                    <td>1. Preparación del Entorno</td>
+                                    <td>Preparación del Entorno</td>
                                     <td>8h</td>
-                                    <td><div class="gantt-bar" style="width: 100%"></div></td>
+                                    <td style="background: rgba(59, 130, 246, 0.3);">████████</td>
                                     <td></td>
                                     <td></td>
                                 </tr>
                                 <tr>
-                                    <td>2. Instalación Ollama</td>
+                                    <td>Instalación Ollama</td>
                                     <td>4h</td>
-                                    <td><div class="gantt-bar" style="width: 100%"></div></td>
+                                    <td style="background: rgba(59, 130, 246, 0.3);">████</td>
                                     <td></td>
                                     <td></td>
                                 </tr>
                                 <tr>
-                                    <td>3. Instalación OpenWebUI</td>
+                                    <td>Instalación OpenWebUI</td>
                                     <td>4h</td>
                                     <td></td>
-                                    <td><div class="gantt-bar" style="width: 100%"></div></td>
+                                    <td style="background: rgba(245, 158, 11, 0.3);">████</td>
                                     <td></td>
                                 </tr>
                                 <tr>
-                                    <td>4. Configuración API Keys</td>
+                                    <td>Configuración API Keys</td>
                                     <td>6h</td>
                                     <td></td>
-                                    <td><div class="gantt-bar" style="width: 100%"></div></td>
+                                    <td style="background: rgba(245, 158, 11, 0.3);">██████</td>
                                     <td></td>
                                 </tr>
                                 <tr>
-                                    <td>5. Seguridad Básica</td>
+                                    <td>Seguridad Básica</td>
                                     <td>8h</td>
                                     <td></td>
-                                    <td><div class="gantt-bar" style="width: 100%"></div></td>
+                                    <td style="background: rgba(245, 158, 11, 0.3);">████████</td>
                                     <td></td>
                                 </tr>
                                 <tr>
-                                    <td>6. Escalabilidad Inicial</td>
-                                    <td>4h</td>
+                                    <td>Escalabilidad y Pruebas</td>
+                                    <td>12h</td>
                                     <td></td>
                                     <td></td>
-                                    <td><div class="gantt-bar" style="width: 25%"></div></td>
-                                </tr>
-                                <tr>
-                                    <td>7. Pruebas Integrales</td>
-                                    <td>16h</td>
-                                    <td></td>
-                                    <td></td>
-                                    <td><div class="gantt-bar" style="width: 75%"></div></td>
-                                </tr>
-                                <tr>
-                                    <td>8. Documentación</td>
-                                    <td>8h</td>
-                                    <td></td>
-                                    <td></td>
-                                    <td><div class="gantt-bar" style="width: 50%"></div></td>
+                                    <td style="background: rgba(16, 185, 129, 0.3);">████████████</td>
                                 </tr>
                             </tbody>
                         </table>
-                    </div>
-                    
-                    <div class="chart-container">
-                        <canvas id="ganttChartHoras"></canvas>
                     </div>
                 </div>
             </section>
 
             <!-- Costos -->
-            <section id="costos" class="content-section">
-                <div class="section-header">
-                    <h2 class="section-title">
+            <section id="costos" class="section">
+                <div class="card">
+                    <h2 class="card-title">
                         <i class="fas fa-dollar-sign"></i>
                         Estimación de Costos
                     </h2>
-                </div>
-                
-                <div class="content-card">
-                    <div class="cost-summary">
-                        <div class="cost-metric">
-                            <i class="fas fa-clock"></i>
-                            <div>
-                                <span class="metric-number">61</span>
-                                <span class="metric-label">Horas Totales</span>
-                            </div>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem; margin: 2rem 0;">
+                        <div style="background: linear-gradient(135deg, var(--primary), var(--primary-dark)); padding: 2rem; border-radius: 20px; text-align: center;">
+                            <i class="fas fa-clock" style="font-size: 2rem; margin-bottom: 1rem; opacity: 0.9;"></i>
+                            <div style="font-size: 2.5rem; font-weight: 700; margin-bottom: 0.5rem;">61</div>
+                            <div style="opacity: 0.9;">Horas Totales</div>
                         </div>
-                        <div class="cost-metric">
-                            <i class="fas fa-calculator"></i>
-                            <div>
-                                <span class="metric-number">$61X</span>
-                                <span class="metric-label">Costo Total</span>
-                            </div>
+                        <div style="background: linear-gradient(135deg, var(--secondary), #d97706); padding: 2rem; border-radius: 20px; text-align: center;">
+                            <i class="fas fa-calculator" style="font-size: 2rem; margin-bottom: 1rem; opacity: 0.9;"></i>
+                            <div style="font-size: 2.5rem; font-weight: 700; margin-bottom: 0.5rem;">$61X</div>
+                            <div style="opacity: 0.9;">Costo Total</div>
                         </div>
-                        <div class="cost-metric">
-                            <i class="fas fa-calendar-week"></i>
-                            <div>
-                                <span class="metric-number">3</span>
-                                <span class="metric-label">Semanas</span>
-                            </div>
+                        <div style="background: linear-gradient(135deg, var(--accent), #059669); padding: 2rem; border-radius: 20px; text-align: center;">
+                            <i class="fas fa-calendar-week" style="font-size: 2rem; margin-bottom: 1rem; opacity: 0.9;"></i>
+                            <div style="font-size: 2.5rem; font-weight: 700; margin-bottom: 0.5rem;">3</div>
+                            <div style="opacity: 0.9;">Semanas</div>
                         </div>
                     </div>
-                    
-                    <div class="cost-table-container">
-                        <table class="cost-table">
+
+                    <div class="chart-container">
+                        <canvas id="costChart" width="400" height="200"></canvas>
+                    </div>
+
+                    <div class="table-container">
+                        <table>
                             <thead>
                                 <tr>
                                     <th>Fase del Proyecto</th>
@@ -589,12 +814,6 @@ sudo systemctl status ollama</code></pre>
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr>
-                                    <td>Planificación y Diseño</td>
-                                    <td>3</td>
-                                    <td>$3X</td>
-                                    <td>5%</td>
-                                </tr>
                                 <tr>
                                     <td>Preparación del Entorno</td>
                                     <td>8</td>
@@ -631,7 +850,7 @@ sudo systemctl status ollama</code></pre>
                                     <td>$4X</td>
                                     <td>7%</td>
                                 </tr>
-                                <tr class="highlight-row">
+                                <tr style="background: rgba(245, 158, 11, 0.2);">
                                     <td>Pruebas Integrales</td>
                                     <td>16</td>
                                     <td>$16X</td>
@@ -643,7 +862,7 @@ sudo systemctl status ollama</code></pre>
                                     <td>$8X</td>
                                     <td>13%</td>
                                 </tr>
-                                <tr class="total-row">
+                                <tr style="background: rgba(255, 255, 255, 0.1); font-weight: 600;">
                                     <td><strong>TOTAL</strong></td>
                                     <td><strong>61</strong></td>
                                     <td><strong>$61X</strong></td>
@@ -656,127 +875,307 @@ sudo systemctl status ollama</code></pre>
             </section>
 
             <!-- Recomendaciones -->
-            <section id="recomendaciones" class="content-section">
-                <div class="section-header">
-                    <h2 class="section-title">
+            <section id="recomendaciones" class="section">
+                <div class="card">
+                    <h2 class="card-title">
                         <i class="fas fa-lightbulb"></i>
                         Recomendaciones Técnicas
                     </h2>
-                </div>
-                
-                <div class="recommendations-grid">
-                    <div class="recommendation-card">
-                        <div class="rec-icon">
-                            <i class="fas fa-gateway"></i>
-                        </div>
-                        <h3>API Gateway</h3>
-                        <p>Implementar Kong Gateway o Tyk para gestión avanzada de API Keys con rate limiting y cuotas.</p>
-                        <div class="rec-priority high">Alta Prioridad</div>
-                    </div>
                     
-                    <div class="recommendation-card">
-                        <div class="rec-icon">
-                            <i class="fas fa-chart-bar"></i>
+                    <div class="rec-grid">
+                        <div class="rec-card priority-high">
+                            <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                                <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #ef4444, #dc2626); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                                    <i class="fas fa-gateway" style="font-size: 1.5rem;"></i>
+                                </div>
+                                <div>
+                                    <h3>API Gateway</h3>
+                                    <span style="background: #fee2e2; color: #991b1b; padding: 0.25rem 0.5rem; border-radius: 10px; font-size: 0.75rem; font-weight: 600;">ALTA PRIORIDAD</span>
+                                </div>
+                            </div>
+                            <p>Implementar Kong Gateway o Tyk para gestión avanzada de API Keys con rate limiting y cuotas. Esencial para control empresarial.</p>
                         </div>
-                        <h3>Monitorización</h3>
-                        <p>Integrar OpenLIT para observabilidad específica de LLMs y stack ELK para logging centralizado.</p>
-                        <div class="rec-priority medium">Media Prioridad</div>
-                    </div>
-                    
-                    <div class="recommendation-card">
-                        <div class="rec-icon">
-                            <i class="fas fa-backup"></i>
-                        </div>
-                        <h3>Backup & Recovery</h3>
-                        <p>Implementar backups automatizados de datos persistentes y configuraciones críticas.</p>
-                        <div class="rec-priority high">Alta Prioridad</div>
-                    </div>
-                    
-                    <div class="recommendation-card">
-                        <div class="rec-icon">
-                            <i class="fas fa-shield-virus"></i>
-                        </div>
-                        <h3>Seguridad Avanzada</h3>
-                        <p>Endurecimiento del sistema, auditorías regulares y protección contra abusos de API.</p>
-                        <div class="rec-priority high">Alta Prioridad</div>
-                    </div>
-                    
-                    <div class="recommendation-card">
-                        <div class="rec-icon">
-                            <i class="fas fa-brain"></i>
-                        </div>
-                        <h3>Optimización LLM</h3>
-                        <p>Evaluar modelos cuantizados y técnicas de optimización para mejor rendimiento.</p>
-                        <div class="rec-priority medium">Media Prioridad</div>
-                    </div>
-                    
-                    <div class="recommendation-card">
-                        <div class="rec-icon">
-                            <i class="fas fa-terminal"></i>
-                        </div>
-                        <h3>Automatización</h3>
-                        <p>Desarrollar scripts CLI para gestión automatizada de usuarios y API Keys.</p>
-                        <div class="rec-priority low">Baja Prioridad</div>
-                    </div>
-                </div>
-            </section>
 
-            <!-- Conclusión -->
-            <section id="conclusion" class="content-section">
-                <div class="section-header">
-                    <h2 class="section-title">
+                        <div class="rec-card priority-medium">
+                            <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                                <div style="width: 60px; height: 60px; background: linear-gradient(135deg, var(--secondary), #d97706); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                                    <i class="fas fa-chart-bar" style="font-size: 1.5rem;"></i>
+                                </div>
+                                <div>
+                                    <h3>Monitorización</h3>
+                                    <span style="background: #fef3c7; color: #92400e; padding: 0.25rem 0.5rem; border-radius: 10px; font-size: 0.75rem; font-weight: 600;">MEDIA PRIORIDAD</span>
+                                </div>
+                            </div>
+                            <p>Integrar OpenLIT para observabilidad específica de LLMs y stack ELK para logging centralizado y análisis de uso.</p>
+                        </div>
+
+                        <div class="rec-card priority-high">
+                            <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                                <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #ef4444, #dc2626); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                                    <i class="fas fa-shield-virus" style="font-size: 1.5rem;"></i>
+                                </div>
+                                <div>
+                                    <h3>Seguridad Avanzada</h3>
+                                    <span style="background: #fee2e2; color: #991b1b; padding: 0.25rem 0.5rem; border-radius: 10px; font-size: 0.75rem; font-weight: 600;">ALTA PRIORIDAD</span>
+                                </div>
+                            </div>
+                            <p>Endurecimiento del sistema, auditorías regulares y protección contra abusos de API. Certificados SSL/TLS obligatorios.</p>
+                        </div>
+
+                        <div class="rec-card priority-high">
+                            <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                                <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #ef4444, #dc2626); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                                    <i class="fas fa-database" style="font-size: 1.5rem;"></i>
+                                </div>
+                                <div>
+                                    <h3>Backup & Recovery</h3>
+                                    <span style="background: #fee2e2; color: #991b1b; padding: 0.25rem 0.5rem; border-radius: 10px; font-size: 0.75rem; font-weight: 600;">ALTA PRIORIDAD</span>
+                                </div>
+                            </div>
+                            <p>Implementar backups automatizados de datos persistentes y configuraciones críticas. Plan de recuperación ante desastres.</p>
+                        </div>
+
+                        <div class="rec-card priority-medium">
+                            <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                                <div style="width: 60px; height: 60px; background: linear-gradient(135deg, var(--secondary), #d97706); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                                    <i class="fas fa-brain" style="font-size: 1.5rem;"></i>
+                                </div>
+                                <div>
+                                    <h3>Optimización LLM</h3>
+                                    <span style="background: #fef3c7; color: #92400e; padding: 0.25rem 0.5rem; border-radius: 10px; font-size: 0.75rem; font-weight: 600;">MEDIA PRIORIDAD</span>
+                                </div>
+                            </div>
+                            <p>Evaluar modelos cuantizados y técnicas de optimización para mejor rendimiento. Considerar GGML y ONNX.</p>
+                        </div>
+
+                        <div class="rec-card priority-low">
+                            <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                                <div style="width: 60px; height: 60px; background: linear-gradient(135deg, var(--accent), #059669); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                                    <i class="fas fa-terminal" style="font-size: 1.5rem;"></i>
+                                </div>
+                                <div>
+                                    <h3>Automatización</h3>
+                                    <span style="background: #d1fae5; color: #065f46; padding: 0.25rem 0.5rem; border-radius: 10px; font-size: 0.75rem; font-weight: 600;">BAJA PRIORIDAD</span>
+                                </div>
+                            </div>
+                            <p>Desarrollar scripts CLI para gestión automatizada de usuarios y API Keys. Ansible para deployments.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Conclusión -->
+                <div class="card" style="margin-top: 3rem;">
+                    <h2 class="card-title">
                         <i class="fas fa-flag-checkered"></i>
                         Conclusión
                     </h2>
-                </div>
-                
-                <div class="content-card">
-                    <div class="conclusion-summary">
-                        <div class="conclusion-point">
-                            <i class="fas fa-check-circle"></i>
+                    
+                    <div style="display: grid; gap: 2rem; margin: 2rem 0;">
+                        <div style="display: flex; gap: 1rem; padding: 1.5rem; background: rgba(16, 185, 129, 0.1); border-radius: 15px; border-left: 4px solid var(--accent);">
+                            <i class="fas fa-check-circle" style="font-size: 1.5rem; color: var(--accent); margin-top: 0.25rem;"></i>
                             <div>
-                                <h3>Viabilidad Técnica</h3>
-                                <p>La implementación de un servidor LLM autoalojado con OpenWebUI y Ollama es técnicamente viable y representa una alternativa sólida a servicios en la nube.</p>
+                                <h3 style="margin-bottom: 0.5rem;">Viabilidad Técnica</h3>
+                                <p style="opacity: 0.9;">La implementación de un servidor LLM autoalojado con OpenWebUI y Ollama es técnicamente viable y representa una alternativa sólida a servicios en la nube.</p>
                             </div>
                         </div>
-                        
-                        <div class="conclusion-point">
-                            <i class="fas fa-key"></i>
+
+                        <div style="display: flex; gap: 1rem; padding: 1.5rem; background: rgba(245, 158, 11, 0.1); border-radius: 15px; border-left: 4px solid var(--secondary);">
+                            <i class="fas fa-key" style="font-size: 1.5rem; color: var(--secondary); margin-top: 0.25rem;"></i>
                             <div>
-                                <h3>Factor Crítico: Gestión de API Keys</h3>
-                                <p>El éxito del modelo de negocio depende fundamentalmente de la madurez de las funcionalidades de gestión de API Keys en OpenWebUI.</p>
+                                <h3 style="margin-bottom: 0.5rem;">Factor Crítico: Gestión de API Keys</h3>
+                                <p style="opacity: 0.9;">El éxito del modelo de negocio depende fundamentalmente de la madurez de las funcionalidades de gestión de API Keys en OpenWebUI.</p>
                             </div>
                         </div>
-                        
-                        <div class="conclusion-point">
-                            <i class="fas fa-chart-line"></i>
+
+                        <div style="display: flex; gap: 1rem; padding: 1.5rem; background: rgba(59, 130, 246, 0.1); border-radius: 15px; border-left: 4px solid var(--primary);">
+                            <i class="fas fa-chart-line" style="font-size: 1.5rem; color: var(--primary); margin-top: 0.25rem;"></i>
                             <div>
-                                <h3>Escalabilidad Planificada</h3>
-                                <p>La solución está diseñada para comenzar con baja demanda pero permite crecimiento futuro mediante múltiples backends y optimizaciones.</p>
-                            </div>
-                        </div>
-                        
-                        <div class="conclusion-point">
-                            <i class="fas fa-shield-alt"></i>
-                            <div>
-                                <h3>Seguridad Prioritaria</h3>
-                                <p>La seguridad debe ser una prioridad constante, desde la configuración inicial hasta el mantenimiento continuo.</p>
+                                <h3 style="margin-bottom: 0.5rem;">Escalabilidad Planificada</h3>
+                                <p style="opacity: 0.9;">La solución está diseñada para comenzar con baja demanda pero permite crecimiento futuro mediante múltiples backends y optimizaciones.</p>
                             </div>
                         </div>
                     </div>
-                    
-                    <div class="final-recommendation">
-                        <i class="fas fa-star"></i>
-                        <div>
-                            <h3>Recomendación Final</h3>
-                            <p>Con una planificación cuidadosa y ejecución diligente de los pasos descritos, es posible construir un servicio LLM on-premises potente, flexible y adaptado a las necesidades empresariales específicas.</p>
-                        </div>
+
+                    <div style="background: linear-gradient(135deg, var(--primary), var(--primary-dark)); padding: 2rem; border-radius: 20px; text-align: center; margin-top: 2rem;">
+                        <i class="fas fa-star" style="font-size: 2rem; margin-bottom: 1rem; opacity: 0.9;"></i>
+                        <h3 style="font-size: 1.5rem; margin-bottom: 1rem;">Recomendación Final</h3>
+                        <p style="opacity: 0.95; font-size: 1.1rem; line-height: 1.6;">
+                            Con una planificación cuidadosa y ejecución diligente de los pasos descritos, es posible construir 
+                            un servicio LLM on-premises potente, flexible y adaptado a las necesidades empresariales específicas.
+                        </p>
                     </div>
                 </div>
             </section>
         </div>
     </main>
 
-    <script src="script.js"></script>
+    <script>
+        // Navigation functionality
+        function showSection(sectionId, navElement) {
+            // Hide all sections
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Show target section
+            document.getElementById(sectionId).classList.add('active');
+            
+            // Update nav active state
+            document.querySelectorAll('.nav-item').forEach(nav => {
+                nav.classList.remove('active');
+            });
+            navElement.classList.add('active');
+
+            // Initialize charts when showing relevant sections
+            if (sectionId === 'cronograma') {
+                setTimeout(initTimelineChart, 100);
+            } else if (sectionId === 'costos') {
+                setTimeout(initCostChart, 100);
+            }
+        }
+
+        // Copy code functionality
+        function copyCode(button) {
+            const codeBlock = button.nextElementSibling.querySelector('code');
+            const text = codeBlock.textContent;
+            
+            navigator.clipboard.writeText(text).then(() => {
+                const originalHTML = button.innerHTML;
+                button.innerHTML = '<i class="fas fa-check"></i>';
+                button.style.background = 'var(--accent)';
+                
+                setTimeout(() => {
+                    button.innerHTML = originalHTML;
+                    button.style.background = 'var(--secondary)';
+                }, 2000);
+            });
+        }
+
+        // Initialize timeline chart
+        function initTimelineChart() {
+            const canvas = document.getElementById('timelineChart');
+            if (!canvas) return;
+            
+            const ctx = canvas.getContext('2d');
+            
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Preparación', 'Ollama', 'OpenWebUI', 'API Keys', 'Seguridad', 'Escalabilidad'],
+                    datasets: [{
+                        label: 'Horas',
+                        data: [8, 4, 4, 6, 8, 4],
+                        backgroundColor: [
+                            'rgba(59, 130, 246, 0.8)',
+                            'rgba(245, 158, 11, 0.8)',
+                            'rgba(16, 185, 129, 0.8)',
+                            'rgba(239, 68, 68, 0.8)',
+                            'rgba(139, 92, 246, 0.8)',
+                            'rgba(6, 182, 212, 0.8)'
+                        ],
+                        borderColor: [
+                            'rgba(59, 130, 246, 1)',
+                            'rgba(245, 158, 11, 1)',
+                            'rgba(16, 185, 129, 1)',
+                            'rgba(239, 68, 68, 1)',
+                            'rgba(139, 92, 246, 1)',
+                            'rgba(6, 182, 212, 1)'
+                        ],
+                        borderWidth: 2,
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                color: 'white'
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                color: 'white'
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Initialize cost chart
+        function initCostChart() {
+            const canvas = document.getElementById('costChart');
+            if (!canvas) return;
+            
+            const ctx = canvas.getContext('2d');
+            
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Preparación (13%)', 'Pruebas (26%)', 'Seguridad (13%)', 'Documentación (13%)', 'API Keys (10%)', 'Otros (25%)'],
+                    datasets: [{
+                        data: [13, 26, 13, 13, 10, 25],
+                        backgroundColor: [
+                            'rgba(59, 130, 246, 0.8)',
+                            'rgba(245, 158, 11, 0.8)',
+                            'rgba(16, 185, 129, 0.8)',
+                            'rgba(239, 68, 68, 0.8)',
+                            'rgba(139, 92, 246, 0.8)',
+                            'rgba(6, 182, 212, 0.8)'
+                        ],
+                        borderColor: 'rgba(255, 255, 255, 0.2)',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: 'white'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Scroll animations
+        function animateOnScroll() {
+            const elements = document.querySelectorAll('.animate-on-scroll');
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, { threshold: 0.1 });
+
+            elements.forEach(el => observer.observe(el));
+        }
+
+        // Initialize when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            animateOnScroll();
+            
+            // Add scroll animations to cards
+            document.querySelectorAll('.card, .benefit-card, .phase-card, .rec-card').forEach(el => {
+                el.classList.add('animate-on-scroll');
+            });
+        });
+    </script>
 </body>
 </html>

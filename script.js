@@ -1,105 +1,137 @@
-// ===== GLOBAL VARIABLES =====
-let ganttHorasChartInstance = null;
-const sections = document.querySelectorAll('.content-section');
-const navLinks = document.querySelectorAll('.nav-item');
-const subNavLinks = document.querySelectorAll('.sub-nav-item');
-const mobileToggle = document.querySelector('.mobile-menu-toggle');
-const sidebar = document.querySelector('.sidebar');
-const navSections = document.querySelectorAll('.nav-section');
+/*
+================================================================================
+SISTEMA DE NAVEGACIÓN INTERACTIVA PARA PROPUESTAS EMPRESARIALES
+================================================================================
 
-// ===== INITIALIZATION =====
+PROPÓSITO:
+Este código implementa un sistema de navegación avanzado para presentaciones 
+técnicas empresariales, diseñado específicamente para mejorar la experiencia 
+del usuario al revisar propuestas complejas de proyectos de infraestructura.
+
+PROBLEMA QUE RESUELVE:
+- Las propuestas técnicas tradicionales son documentos estáticos y difíciles de navegar
+- Los ejecutivos necesitan acceso rápido a información específica sin perderse en detalles técnicos
+- La presentación de cronogramas y costos requiere visualización interactiva para facilitar la toma de decisiones
+
+VALOR DE NEGOCIO:
+- Reduce el tiempo de revisión de propuestas de horas a minutos
+- Mejora la comprensión de proyectos complejos mediante navegación visual
+- Aumenta la profesionalidad percibida y diferenciación competitiva
+- Facilita la presentación ejecutiva con gráficos interactivos en tiempo real
+
+TECNOLOGÍA UTILIZADA:
+- JavaScript vanilla para máxima compatibilidad
+- Chart.js para visualizaciones profesionales
+- Responsive design para acceso multi-dispositivo
+================================================================================
+*/
+
+// ==================== VARIABLES GLOBALES DEL SISTEMA ====================
+let projectTimelineChart = null;
+const navigationSections = document.querySelectorAll('.content-section');
+const mainNavigationLinks = document.querySelectorAll('.nav-item');
+const subNavigationLinks = document.querySelectorAll('.sub-nav-item');
+const mobileMenuToggle = document.querySelector('.mobile-menu-toggle');
+const sidebarNavigation = document.querySelector('.sidebar');
+const collapsibleSections = document.querySelectorAll('.nav-section');
+
+// ==================== INICIALIZACIÓN DEL SISTEMA ====================
 document.addEventListener('DOMContentLoaded', function() {
-    initializeNavigation();
-    initializeMobileMenu();
-    initializeCopyButtons();
-    initializeSubNavigation();
+    initializePrimaryNavigation();
+    initializeMobileMenuSystem();
+    initializeCodeCopyButtons();
+    initializeCollapsibleNavigation();
     
-    // Set initial section
-    const initialHash = window.location.hash || '#introduccion';
-    showSection(initialHash);
+    // Establecer sección inicial del documento
+    const initialSection = window.location.hash || '#introduccion';
+    displaySelectedSection(initialSection);
     
-    // Render chart if on gantt section
-    if (initialHash === '#gantt') {
-        setTimeout(renderGanttHorasChart, 100);
+    // Renderizar gráficos si la sección lo requiere
+    if (initialSection === '#gantt') {
+        setTimeout(renderProjectTimelineChart, 100);
     }
 });
 
-// ===== NAVIGATION FUNCTIONS =====
-function initializeNavigation() {
-    // Main navigation links
-    navLinks.forEach(link => {
-        link.addEventListener('click', handleNavClick);
+// ==================== SISTEMA DE NAVEGACIÓN PRINCIPAL ====================
+function initializePrimaryNavigation() {
+    // Configurar enlaces de navegación principal
+    mainNavigationLinks.forEach(navigationLink => {
+        navigationLink.addEventListener('click', handlePrimaryNavigation);
     });
     
-    // Sub navigation links
-    subNavLinks.forEach(link => {
-        link.addEventListener('click', handleSubNavClick);
+    // Configurar navegación secundaria (sub-secciones)
+    subNavigationLinks.forEach(subLink => {
+        subLink.addEventListener('click', handleSecondaryNavigation);
     });
     
-    // Handle browser back/forward
-    window.addEventListener('popstate', handlePopState);
+    // Manejar navegación del historial del navegador (botones atrás/adelante)
+    window.addEventListener('popstate', handleBrowserNavigation);
 }
 
-function handleNavClick(e) {
-    e.preventDefault();
-    const targetId = e.currentTarget.getAttribute('href');
+function handlePrimaryNavigation(clickEvent) {
+    clickEvent.preventDefault();
+    const targetSectionId = clickEvent.currentTarget.getAttribute('href');
     
-    // Handle sub-navigation toggle
-    const navSection = e.currentTarget.closest('.nav-section');
-    if (navSection && targetId === '#plan') {
-        toggleSubNavigation(navSection);
+    // Manejar expansión de sub-navegación para secciones complejas
+    const parentSection = clickEvent.currentTarget.closest('.nav-section');
+    if (parentSection && targetSectionId === '#plan') {
+        toggleSubNavigationVisibility(parentSection);
     }
     
-    navigateToSection(targetId);
+    navigateToSection(targetSectionId);
 }
 
-function handleSubNavClick(e) {
-    e.preventDefault();
-    const targetId = e.currentTarget.getAttribute('href');
-    navigateToSection(targetId);
+function handleSecondaryNavigation(clickEvent) {
+    clickEvent.preventDefault();
+    const targetSectionId = clickEvent.currentTarget.getAttribute('href');
+    navigateToSection(targetSectionId);
 }
 
-function handlePopState() {
-    const currentHash = window.location.hash || '#introduccion';
-    showSection(currentHash);
+function handleBrowserNavigation() {
+    const currentSection = window.location.hash || '#introduccion';
+    displaySelectedSection(currentSection);
     
-    if (currentHash === '#gantt') {
-        setTimeout(renderGanttHorasChart, 100);
+    // Renderizar gráficos específicos si es necesario
+    if (currentSection === '#gantt') {
+        setTimeout(renderProjectTimelineChart, 100);
     }
 }
 
-function navigateToSection(targetId) {
-    history.pushState(null, null, targetId);
-    showSection(targetId);
+// ==================== CONTROL DE VISUALIZACIÓN DE SECCIONES ====================
+function navigateToSection(targetSectionId) {
+    // Actualizar historial del navegador sin recargar página
+    history.pushState(null, null, targetSectionId);
+    displaySelectedSection(targetSectionId);
     
-    if (targetId === '#gantt') {
-        setTimeout(renderGanttHorasChart, 100);
+    // Renderizar contenido específico de la sección
+    if (targetSectionId === '#gantt') {
+        setTimeout(renderProjectTimelineChart, 100);
     }
     
-    // Close mobile menu if open
+    // Cerrar menú móvil automáticamente en dispositivos pequeños
     if (window.innerWidth <= 768) {
-        sidebar.classList.remove('active');
+        sidebarNavigation.classList.remove('active');
     }
 }
 
-function showSection(hash) {
-    // Hide all sections
-    sections.forEach(section => {
+function displaySelectedSection(sectionHash) {
+    // Ocultar todas las secciones del contenido
+    navigationSections.forEach(section => {
         section.classList.remove('active');
     });
     
-    // Show target section
-    let targetSection;
-    if (hash.startsWith('#fase') && hash !== '#plan') {
-        // Show plan section for phases
-        targetSection = document.getElementById('plan');
-        if (targetSection) {
-            targetSection.classList.add('active');
-            // Scroll to specific phase
+    // Mostrar la sección objetivo
+    let targetContentSection;
+    if (sectionHash.startsWith('#fase') && sectionHash !== '#plan') {
+        // Caso especial: mostrar sección de plan para fases específicas
+        targetContentSection = document.getElementById('plan');
+        if (targetContentSection) {
+            targetContentSection.classList.add('active');
+            // Desplazamiento suave a la fase específica
             setTimeout(() => {
-                const phaseElement = document.querySelector(hash);
-                if (phaseElement) {
-                    phaseElement.scrollIntoView({ 
+                const specificPhaseElement = document.querySelector(sectionHash);
+                if (specificPhaseElement) {
+                    specificPhaseElement.scrollIntoView({ 
                         behavior: 'smooth', 
                         block: 'start',
                         inline: 'nearest'
@@ -108,13 +140,14 @@ function showSection(hash) {
             }, 100);
         }
     } else {
-        const sectionId = hash.substring(1) || 'introduccion';
-        targetSection = document.getElementById(sectionId);
-        if (targetSection) {
-            targetSection.classList.add('active');
-            // Smooth scroll to top of section
+        // Navegación estándar a secciones principales
+        const sectionIdentifier = sectionHash.substring(1) || 'introduccion';
+        targetContentSection = document.getElementById(sectionIdentifier);
+        if (targetContentSection) {
+            targetContentSection.classList.add('active');
+            // Desplazamiento suave al inicio de la sección
             setTimeout(() => {
-                targetSection.scrollIntoView({ 
+                targetContentSection.scrollIntoView({ 
                     behavior: 'smooth', 
                     block: 'start',
                     inline: 'nearest'
@@ -123,165 +156,166 @@ function showSection(hash) {
         }
     }
     
-    updateActiveLinks(hash);
-    updateSubNavigation(hash);
+    updateNavigationHighlights(sectionHash);
+    updateSubNavigationExpansion(sectionHash);
 }
 
-function updateActiveLinks(hash) {
-    // Update main navigation
-    navLinks.forEach(link => {
-        const linkHref = link.getAttribute('href');
-        if (linkHref === hash || (hash.startsWith('#fase') && linkHref === '#plan')) {
-            link.classList.add('active');
+function updateNavigationHighlights(activeSection) {
+    // Actualizar resaltado en navegación principal
+    mainNavigationLinks.forEach(navLink => {
+        const linkTarget = navLink.getAttribute('href');
+        if (linkTarget === activeSection || (activeSection.startsWith('#fase') && linkTarget === '#plan')) {
+            navLink.classList.add('active');
         } else {
-            link.classList.remove('active');
+            navLink.classList.remove('active');
         }
     });
     
-    // Update sub navigation
-    subNavLinks.forEach(link => {
-        const linkHref = link.getAttribute('href');
-        if (linkHref === hash) {
-            link.classList.add('active');
+    // Actualizar resaltado en sub-navegación
+    subNavigationLinks.forEach(subLink => {
+        const subLinkTarget = subLink.getAttribute('href');
+        if (subLinkTarget === activeSection) {
+            subLink.classList.add('active');
         } else {
-            link.classList.remove('active');
+            subLink.classList.remove('active');
         }
     });
 }
 
-function updateSubNavigation(hash) {
-    // Auto-expand plan section if viewing phases
-    const planSection = document.querySelector('.nav-section a[href="#plan"]')?.closest('.nav-section');
-    if (planSection && (hash === '#plan' || hash.startsWith('#fase'))) {
-        planSection.classList.add('active');
+function updateSubNavigationExpansion(currentSection) {
+    // Expandir automáticamente la sección de plan si se visualizan fases
+    const planSectionContainer = document.querySelector('.nav-section a[href="#plan"]')?.closest('.nav-section');
+    if (planSectionContainer && (currentSection === '#plan' || currentSection.startsWith('#fase'))) {
+        planSectionContainer.classList.add('active');
     }
 }
 
-// ===== SUB-NAVIGATION FUNCTIONS =====
-function initializeSubNavigation() {
-    navSections.forEach(section => {
-        const mainLink = section.querySelector('.nav-item');
-        if (mainLink) {
-            mainLink.addEventListener('click', (e) => {
-                const href = mainLink.getAttribute('href');
-                if (href === '#plan') {
-                    e.preventDefault();
-                    toggleSubNavigation(section);
-                    navigateToSection(href);
+// ==================== SISTEMA DE NAVEGACIÓN COLAPSIBLE ====================
+function initializeCollapsibleNavigation() {
+    collapsibleSections.forEach(section => {
+        const primaryLink = section.querySelector('.nav-item');
+        if (primaryLink) {
+            primaryLink.addEventListener('click', (clickEvent) => {
+                const linkTarget = primaryLink.getAttribute('href');
+                if (linkTarget === '#plan') {
+                    clickEvent.preventDefault();
+                    toggleSubNavigationVisibility(section);
+                    navigateToSection(linkTarget);
                 }
             });
         }
     });
 }
 
-function toggleSubNavigation(section) {
-    section.classList.toggle('active');
+function toggleSubNavigationVisibility(targetSection) {
+    targetSection.classList.toggle('active');
     
-    // Close other sub-navigations
-    navSections.forEach(otherSection => {
-        if (otherSection !== section) {
+    // Cerrar otras sub-navegaciones para mantener interfaz limpia
+    collapsibleSections.forEach(otherSection => {
+        if (otherSection !== targetSection) {
             otherSection.classList.remove('active');
         }
     });
 }
 
-// ===== MOBILE MENU FUNCTIONS =====
-function initializeMobileMenu() {
-    if (mobileToggle) {
-        mobileToggle.addEventListener('click', toggleMobileMenu);
+// ==================== SISTEMA DE MENÚ MÓVIL RESPONSIVO ====================
+function initializeMobileMenuSystem() {
+    if (mobileMenuToggle) {
+        mobileMenuToggle.addEventListener('click', toggleMobileMenuVisibility);
     }
     
-    // Close mobile menu when clicking outside
-    document.addEventListener('click', (e) => {
-        if (window.innerWidth <= 768 && sidebar.classList.contains('active')) {
-            if (!sidebar.contains(e.target) && !mobileToggle.contains(e.target)) {
-                sidebar.classList.remove('active');
+    // Cerrar menú móvil al hacer clic fuera del área de navegación
+    document.addEventListener('click', (clickEvent) => {
+        if (window.innerWidth <= 768 && sidebarNavigation.classList.contains('active')) {
+            if (!sidebarNavigation.contains(clickEvent.target) && !mobileMenuToggle.contains(clickEvent.target)) {
+                sidebarNavigation.classList.remove('active');
             }
         }
     });
     
-    // Handle window resize
+    // Manejar cambios de tamaño de pantalla para responsividad
     window.addEventListener('resize', () => {
         if (window.innerWidth > 768) {
-            sidebar.classList.remove('active');
+            sidebarNavigation.classList.remove('active');
         }
     });
 }
 
-function toggleMobileMenu() {
-    sidebar.classList.toggle('active');
+function toggleMobileMenuVisibility() {
+    sidebarNavigation.classList.toggle('active');
 }
 
-// ===== COPY BUTTON FUNCTIONS =====
-function initializeCopyButtons() {
-    const copyButtons = document.querySelectorAll('.copy-btn');
-    copyButtons.forEach(button => {
-        button.addEventListener('click', handleCopyClick);
+// ==================== SISTEMA DE COPIADO DE CÓDIGO TÉCNICO ====================
+function initializeCodeCopyButtons() {
+    const copyCodeButtons = document.querySelectorAll('.copy-btn');
+    copyCodeButtons.forEach(button => {
+        button.addEventListener('click', handleCodeCopyAction);
     });
 }
 
-async function handleCopyClick(e) {
-    const button = e.currentTarget;
-    const codeBlock = button.nextElementSibling;
-    const code = codeBlock.innerText;
+async function handleCodeCopyAction(clickEvent) {
+    const copyButton = clickEvent.currentTarget;
+    const codeBlock = copyButton.nextElementSibling;
+    const codeContent = codeBlock.innerText;
     
     try {
-        await navigator.clipboard.writeText(code);
-        showCopySuccess(button);
-    } catch (err) {
-        console.error('Error al copiar: ', err);
-        showCopyError(button);
+        await navigator.clipboard.writeText(codeContent);
+        showCopySuccessIndicator(copyButton);
+    } catch (error) {
+        console.error('Error al copiar código técnico: ', error);
+        showCopyErrorIndicator(copyButton);
     }
 }
 
-function showCopySuccess(button) {
-    const originalContent = button.innerHTML;
+function showCopySuccessIndicator(button) {
+    const originalButtonContent = button.innerHTML;
     button.innerHTML = '<i class="fas fa-check"></i>';
     button.style.background = '#10b981';
     
     setTimeout(() => {
-        button.innerHTML = originalContent;
+        button.innerHTML = originalButtonContent;
         button.style.background = '';
     }, 2000);
 }
 
-function showCopyError(button) {
-    const originalContent = button.innerHTML;
+function showCopyErrorIndicator(button) {
+    const originalButtonContent = button.innerHTML;
     button.innerHTML = '<i class="fas fa-times"></i>';
     button.style.background = '#ef4444';
     
     setTimeout(() => {
-        button.innerHTML = originalContent;
+        button.innerHTML = originalButtonContent;
         button.style.background = '';
     }, 2000);
 }
 
-// ===== CHART FUNCTIONS =====
-function renderGanttHorasChart() {
-    const canvas = document.getElementById('ganttChartHoras');
-    if (!canvas) return;
+// ==================== GENERACIÓN DE GRÁFICOS EJECUTIVOS ====================
+function renderProjectTimelineChart() {
+    const chartCanvas = document.getElementById('ganttChartHoras');
+    if (!chartCanvas) return;
     
-    const ctx = canvas.getContext('2d');
+    const chartContext = chartCanvas.getContext('2d');
     
-    // Destroy existing chart
-    if (ganttHorasChartInstance) {
-        ganttHorasChartInstance.destroy();
+    // Destruir gráfico existente para evitar superposiciones
+    if (projectTimelineChart) {
+        projectTimelineChart.destroy();
     }
     
-    const data = {
+    // Datos del proyecto estructurados para presentación ejecutiva
+    const projectPhaseData = {
         labels: [
-            "Planificación",
-            "Preparación Entorno",
+            "Planificación Estratégica",
+            "Preparación Infraestructura",
             "Instalación Ollama",
             "Instalación OpenWebUI",
-            "Configuración API",
-            "Seguridad Básica",
-            "Escalabilidad",
+            "Configuración APIs",
+            "Implementación Seguridad",
+            "Optimización Escalabilidad",
             "Pruebas Integrales",
-            "Documentación"
+            "Documentación Final"
         ],
         datasets: [{
-            label: 'Horas Estimadas',
+            label: 'Horas de Inversión Estimadas',
             data: [3, 8, 4, 4, 6, 8, 4, 16, 8],
             backgroundColor: [
                 'rgba(245, 158, 11, 0.8)',
@@ -294,30 +328,21 @@ function renderGanttHorasChart() {
                 'rgba(180, 83, 9, 0.6)',
                 'rgba(146, 64, 14, 0.6)'
             ],
-            borderColor: [
-                'rgba(245, 158, 11, 1)',
-                'rgba(217, 119, 6, 1)',
-                'rgba(180, 83, 9, 1)',
-                'rgba(146, 64, 14, 1)',
-                'rgba(120, 53, 15, 1)',
-                'rgba(245, 158, 11, 1)',
-                'rgba(217, 119, 6, 1)',
-                'rgba(180, 83, 9, 1)',
-                'rgba(146, 64, 14, 1)'
-            ],
+            borderColor: 'rgba(245, 158, 11, 1)',
             borderWidth: 2,
             borderRadius: 6,
             borderSkipped: false,
         }]
     };
     
-    const config = {
+    // Configuración profesional del gráfico para presentación ejecutiva
+    const chartConfiguration = {
         type: 'bar',
-        data: data,
+        data: projectPhaseData,
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            indexAxis: 'y',
+            indexAxis: 'y', // Gráfico horizontal para mejor legibilidad
             animation: {
                 duration: 1500,
                 easing: 'easeOutQuart'
@@ -327,11 +352,8 @@ function renderGanttHorasChart() {
                     beginAtZero: true,
                     title: {
                         display: true,
-                        text: 'Horas Estimadas',
-                        font: {
-                            size: 14,
-                            weight: 'bold'
-                        },
+                        text: 'Horas de Inversión Requeridas',
+                        font: { size: 14, weight: 'bold' },
                         color: '#374151'
                     },
                     grid: {
@@ -340,40 +362,29 @@ function renderGanttHorasChart() {
                     },
                     ticks: {
                         color: '#6b7280',
-                        font: {
-                            size: 12
-                        }
+                        font: { size: 12 }
                     }
                 },
                 y: {
                     title: {
                         display: true,
                         text: 'Fases del Proyecto',
-                        font: {
-                            size: 14,
-                            weight: 'bold'
-                        },
+                        font: { size: 14, weight: 'bold' },
                         color: '#374151'
                     },
-                    grid: {
-                        display: false
-                    },
+                    grid: { display: false },
                     ticks: {
                         color: '#6b7280',
-                        font: {
-                            size: 12
-                        },
+                        font: { size: 12 },
                         callback: function(value, index, values) {
-                            const label = this.getLabelForValue(value);
-                            return label.length > 20 ? label.substring(0, 20) + '...' : label;
+                            const labelText = this.getLabelForValue(value);
+                            return labelText.length > 20 ? labelText.substring(0, 20) + '...' : labelText;
                         }
                     }
                 }
             },
             plugins: {
-                legend: {
-                    display: false
-                },
+                legend: { display: false },
                 tooltip: {
                     backgroundColor: 'rgba(0, 0, 0, 0.8)',
                     titleColor: '#fff',
@@ -387,248 +398,138 @@ function renderGanttHorasChart() {
                             return context[0].label;
                         },
                         label: function(context) {
-                            return `${context.raw} horas estimadas`;
+                            return `${context.raw} horas de inversión`;
                         }
                     }
                 }
             },
             layout: {
-                padding: {
-                    top: 20,
-                    right: 20,
-                    bottom: 20,
-                    left: 20
-                }
+                padding: { top: 20, right: 20, bottom: 20, left: 20 }
             }
         }
     };
     
-    ganttHorasChartInstance = new Chart(ctx, config);
+    // Crear instancia del gráfico ejecutivo
+    projectTimelineChart = new Chart(chartContext, chartConfiguration);
 }
 
-// ===== UTILITY FUNCTIONS =====
-function debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-        const later = () => {
-            clearTimeout(timeout);
-            func(...args);
+// ==================== FUNCIONES DE OPTIMIZACIÓN DE RENDIMIENTO ====================
+function createDebounceFunction(targetFunction, delayMilliseconds) {
+    let timeoutReference;
+    return function executeDebouncedFunction(...arguments) {
+        const laterExecution = () => {
+            clearTimeout(timeoutReference);
+            targetFunction(...arguments);
         };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
+        clearTimeout(timeoutReference);
+        timeoutReference = setTimeout(laterExecution, delayMilliseconds);
     };
 }
 
-function throttle(func, limit) {
-    let lastFunc;
-    let lastRan;
-    return function() {
-        const context = this;
-        const args = arguments;
-        if (!lastRan) {
-            func.apply(context, args);
-            lastRan = Date.now();
+function createThrottleFunction(targetFunction, limitMilliseconds) {
+    let lastExecutionTime;
+    let lastTimeoutReference;
+    return function executeThrottledFunction() {
+        const executionContext = this;
+        const functionArguments = arguments;
+        
+        if (!lastExecutionTime) {
+            targetFunction.apply(executionContext, functionArguments);
+            lastExecutionTime = Date.now();
         } else {
-            clearTimeout(lastFunc);
-            lastFunc = setTimeout(function() {
-                if ((Date.now() - lastRan) >= limit) {
-                    func.apply(context, args);
-                    lastRan = Date.now();
+            clearTimeout(lastTimeoutReference);
+            lastTimeoutReference = setTimeout(function() {
+                if ((Date.now() - lastExecutionTime) >= limitMilliseconds) {
+                    targetFunction.apply(executionContext, functionArguments);
+                    lastExecutionTime = Date.now();
                 }
-            }, limit - (Date.now() - lastRan));
+            }, limitMilliseconds - (Date.now() - lastExecutionTime));
         }
     }
 }
 
-// ===== PERFORMANCE OPTIMIZATIONS =====
-// Optimize scroll handling
-const debouncedScrollHandler = debounce(() => {
-    // Add any scroll-based functionality here if needed
+// ==================== OPTIMIZACIONES DE RENDIMIENTO DEL SISTEMA ====================
+const optimizedScrollHandler = createDebounceFunction(() => {
+    // Funcionalidad de scroll optimizada se implementaría aquí según necesidades
 }, 100);
 
-window.addEventListener('scroll', debouncedScrollHandler);
+window.addEventListener('scroll', optimizedScrollHandler);
 
-// Optimize resize handling
-const debouncedResizeHandler = debounce(() => {
-    if (ganttHorasChartInstance) {
-        ganttHorasChartInstance.resize();
+const optimizedResizeHandler = createDebounceFunction(() => {
+    if (projectTimelineChart) {
+        projectTimelineChart.resize();
     }
 }, 250);
 
-window.addEventListener('resize', debouncedResizeHandler);
+window.addEventListener('resize', optimizedResizeHandler);
 
-// ===== INTERSECTION OBSERVER FOR ANIMATIONS =====
-function initializeAnimations() {
-    const observerOptions = {
+// ==================== SISTEMA DE ANIMACIONES PROFESIONALES ====================
+function initializeScrollAnimations() {
+    const observerConfiguration = {
         threshold: 0.1,
         rootMargin: '0px 0px -50px 0px'
     };
     
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
+    const animationObserver = new IntersectionObserver((observedEntries) => {
+        observedEntries.forEach(entry => {
             if (entry.isIntersecting) {
                 entry.target.style.opacity = '1';
                 entry.target.style.transform = 'translateY(0)';
             }
         });
-    }, observerOptions);
+    }, observerConfiguration);
     
-    // Observe elements that should animate on scroll
+    // Observar elementos que requieren animación al aparecer en pantalla
     const animatedElements = document.querySelectorAll(
         '.content-card, .phase-card, .recommendation-card, .conclusion-point'
     );
     
-    animatedElements.forEach(el => {
-        el.style.opacity = '0';
-        el.style.transform = 'translateY(30px)';
-        el.style.transition = 'opacity 0.6s ease-out, transform 0.6s ease-out';
-        observer.observe(el);
+    animatedElements.forEach(element => {
+        element.style.opacity = '0';
+        element.style.transform = 'translateY(30px)';
+        element.style.transition = 'opacity 0.6s ease-out, transform 0.6s ease-out';
+        animationObserver.observe(element);
     });
 }
 
-// Initialize animations when DOM is loaded
+// Inicializar animaciones después de que el DOM esté completamente cargado
 document.addEventListener('DOMContentLoaded', () => {
-    setTimeout(initializeAnimations, 500);
+    setTimeout(initializeScrollAnimations, 500);
 });
 
-// ===== KEYBOARD NAVIGATION =====
-document.addEventListener('keydown', (e) => {
-    // ESC key to close mobile menu
-    if (e.key === 'Escape' && sidebar.classList.contains('active')) {
-        sidebar.classList.remove('active');
+// ==================== NAVEGACIÓN POR TECLADO PARA ACCESIBILIDAD ====================
+document.addEventListener('keydown', (keyEvent) => {
+    // Tecla ESC para cerrar menú móvil
+    if (keyEvent.key === 'Escape' && sidebarNavigation.classList.contains('active')) {
+        sidebarNavigation.classList.remove('active');
     }
     
-    // Arrow keys for section navigation
-    if (e.ctrlKey || e.metaKey) {
-        const currentHash = window.location.hash || '#introduccion';
-        const sectionOrder = [
-            '#introduccion',
-            '#plan',
-            '#gantt',
-            '#costos',
-            '#recomendaciones',
-            '#conclusion'
+    // Navegación con flechas del teclado (Ctrl + flecha)
+    if (keyEvent.ctrlKey || keyEvent.metaKey) {
+        const currentSection = window.location.hash || '#introduccion';
+        const sectionSequence = [
+            '#introduccion', '#plan', '#gantt', '#costos', '#recomendaciones', '#conclusion'
         ];
         
-        const currentIndex = sectionOrder.indexOf(currentHash);
+        const currentIndex = sectionSequence.indexOf(currentSection);
         
-        if (e.key === 'ArrowRight' && currentIndex < sectionOrder.length - 1) {
-            e.preventDefault();
-            navigateToSection(sectionOrder[currentIndex + 1]);
-        } else if (e.key === 'ArrowLeft' && currentIndex > 0) {
-            e.preventDefault();
-            navigateToSection(sectionOrder[currentIndex - 1]);
+        if (keyEvent.key === 'ArrowRight' && currentIndex < sectionSequence.length - 1) {
+            keyEvent.preventDefault();
+            navigateToSection(sectionSequence[currentIndex + 1]);
+        } else if (keyEvent.key === 'ArrowLeft' && currentIndex > 0) {
+            keyEvent.preventDefault();
+            navigateToSection(sectionSequence[currentIndex - 1]);
         }
     }
 });
 
-// ===== ERROR HANDLING =====
-window.addEventListener('error', (e) => {
-    console.error('JavaScript Error:', e.error);
-    // Could implement user-friendly error reporting here
+// ==================== MANEJO PROFESIONAL DE ERRORES ====================
+window.addEventListener('error', (errorEvent) => {
+    console.error('Error del sistema detectado:', errorEvent.error);
+    // Implementar reporte de errores empresarial aquí si es necesario
 });
 
-window.addEventListener('unhandledrejection', (e) => {
-    console.error('Unhandled Promise Rejection:', e.reason);
-    // Could implement user-friendly error reporting here
+window.addEventListener('unhandledrejection', (rejectionEvent) => {
+    console.error('Promesa rechazada sin manejo:', rejectionEvent.reason);
+    // Implementar manejo de promesas rechazadas aquí si es necesario
 });
-
-// ===== ACCESSIBILITY IMPROVEMENTS =====
-function improveAccessibility() {
-    // Add skip link for keyboard users
-    const skipLink = document.createElement('a');
-    skipLink.href = '#main-content';
-    skipLink.textContent = 'Saltar al contenido principal';
-    skipLink.className = 'skip-link';
-    skipLink.style.cssText = `
-        position: absolute;
-        top: -40px;
-        left: 6px;
-        background: #000;
-        color: #fff;
-        padding: 8px;
-        text-decoration: none;
-        z-index: 9999;
-        border-radius: 4px;
-    `;
-    
-    skipLink.addEventListener('focus', () => {
-        skipLink.style.top = '6px';
-    });
-    
-    skipLink.addEventListener('blur', () => {
-        skipLink.style.top = '-40px';
-    });
-    
-    document.body.insertBefore(skipLink, document.body.firstChild);
-    
-    // Add main content ID
-    const mainContent = document.querySelector('.main-content');
-    if (mainContent) {
-        mainContent.id = 'main-content';
-    }
-    
-    // Improve focus management
-    const focusableElements = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
-    
-    // Trap focus in mobile menu when open
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Tab' && sidebar.classList.contains('active')) {
-            const focusableContent = sidebar.querySelectorAll(focusableElements);
-            const firstFocusableElement = focusableContent[0];
-            const lastFocusableElement = focusableContent[focusableContent.length - 1];
-            
-            if (e.shiftKey) {
-                if (document.activeElement === firstFocusableElement) {
-                    lastFocusableElement.focus();
-                    e.preventDefault();
-                }
-            } else {
-                if (document.activeElement === lastFocusableElement) {
-                    firstFocusableElement.focus();
-                    e.preventDefault();
-                }
-            }
-        }
-    });
-}
-
-// Initialize accessibility improvements
-document.addEventListener('DOMContentLoaded', improveAccessibility);
-
-// ===== PRINT SUPPORT =====
-window.addEventListener('beforeprint', () => {
-    // Show all sections for printing
-    sections.forEach(section => {
-        section.style.display = 'block';
-    });
-});
-
-window.addEventListener('afterprint', () => {
-    // Restore section visibility
-    const currentHash = window.location.hash || '#introduccion';
-    showSection(currentHash);
-});
-
-// ===== EXPORT FUNCTIONALITY =====
-function exportToPDF() {
-    // This would require a PDF library like jsPDF or html2pdf
-    // Implementation would depend on specific requirements
-    console.log('PDF export functionality would be implemented here');
-}
-
-// ===== ANALYTICS TRACKING (Optional) =====
-function trackSectionView(sectionId) {
-    // Implementation would depend on analytics provider (GA4, etc.)
-    // console.log('Section viewed:', sectionId);
-}
-
-// ===== PERFORMANCE MONITORING =====
-if ('performance' in window) {
-    window.addEventListener('load', () => {
-        setTimeout(() => {
-            const perfData = performance.getEntriesByType('navigation')[0];
-            console.log('Page load time:', perfData.loadEventEnd - perfData.loadEventStart, 'ms');
-        }, 0);
-    });
-}
