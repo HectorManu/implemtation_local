@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Propuesta Interactiva: Servidor LLM Autoalojado con OpenWebUI</title>
+    <title>Interactive Proposal: Self-Hosted LLM Server with OpenWebUI</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
@@ -17,35 +17,35 @@
                 <i class="fas fa-server"></i>
                 <div>
                     <div>OpenWebUI</div>
-                    <div style="font-size: 1rem; font-weight: 400; opacity: 0.8;">Propuesta Técnica</div>
+                    <div style="font-size: 1rem; font-weight: 400; opacity: 0.8;">Technical Proposal</div>
                 </div>
             </div>
-            <p class="subtitle">Servidor LLM Autoalojado para Implementación Empresarial</p>
+            <p class="subtitle">Self-Hosted LLM Server for Enterprise Implementation</p>
         </div>
     </header>
 
     <nav class="nav">
         <div class="container">
             <div class="nav-container">
-                <a href="#introduccion" class="nav-item active" onclick="showSection('introduccion', this)">
+                <a href="#introduction" class="nav-item active" onclick="showSection('introduction', this)">
                     <i class="fas fa-home"></i>
-                    Introducción
+                    Introduction
                 </a>
                 <a href="#plan" class="nav-item" onclick="showSection('plan', this)">
                     <i class="fas fa-tasks"></i>
                     Plan
                 </a>
-                <a href="#cronograma" class="nav-item" onclick="showSection('cronograma', this)">
+                <a href="#timeline" class="nav-item" onclick="showSection('timeline', this)">
                     <i class="fas fa-calendar-alt"></i>
-                    Cronograma
+                    Timeline
                 </a>
-                <a href="#costos" class="nav-item" onclick="showSection('costos', this)">
+                <a href="#costs" class="nav-item" onclick="showSection('costs', this)">
                     <i class="fas fa-dollar-sign"></i>
-                    Costos
+                    Costs
                 </a>
-                <a href="#recomendaciones" class="nav-item" onclick="showSection('recomendaciones', this)">
+                <a href="#recommendations" class="nav-item" onclick="showSection('recommendations', this)">
                     <i class="fas fa-lightbulb"></i>
-                    Recomendaciones
+                    Recommendations
                 </a>
             </div>
         </div>
@@ -53,41 +53,41 @@
 
     <main class="main">
         <div class="container">
-            <section id="introduccion" class="section active">
+            <section id="introduction" class="section active">
                 <div class="hero">
-                    <h1 class="hero-title">Transforme su Infraestructura AI</h1>
+                    <h1 class="hero-title">Transform Your AI Infrastructure</h1>
                     <p class="hero-description">
-                        Implemente un servidor de modelos de lenguaje grandes (LLM) autoalojado con control total
-                        sobre su infraestructura y datos. Una alternativa local profesional a servicios como ChatGPT.
+                        Implement a self-hosted Large Language Model (LLM) server with full control
+                        over your infrastructure and data. A professional on-premises alternative to services like ChatGPT.
                     </p>
                 </div>
 
                 <div class="highlight-box">
                     <h3 style="font-size: 1.5rem; margin-bottom: 1rem;">
                         <i class="fas fa-target"></i>
-                        Objetivo Principal
+                        Main Objective
                     </h3>
                     <p style="font-size: 1.1rem; opacity: 0.95;">
-                        Implementar un servidor LLM autoalojado utilizando OpenWebUI como interfaz,
-                        permitiendo la generación y administración de claves API para el consumo controlado y seguro de modelos.
+                        Implement a self-hosted LLM server using OpenWebUI as an interface,
+                        enabling the generation and management of API keys for controlled and secure model consumption.
                     </p>
                 </div>
 
                 <div class="benefits-grid">
                     <div class="benefit-card">
                         <i class="fas fa-shield-alt benefit-icon"></i>
-                        <h3>Privacidad Total</h3>
-                        <p>Control completo sobre los datos sin dependencia de servicios externos. Sus datos nunca salen de su infraestructura.</p>
+                        <h3>Total Privacy</h3>
+                        <p>Complete control over data without reliance on external services. Your data never leaves your infrastructure.</p>
                     </div>
                     <div class="benefit-card">
                         <i class="fas fa-coins benefit-icon"></i>
-                        <h3>Control de Costos</h3>
-                        <p>Eliminación de costos variables por uso de APIs externas. Inversión única con ROI predecible.</p>
+                        <h3>Cost Control</h3>
+                        <p>Elimination of variable costs from using external APIs. One-time investment with predictable ROI.</p>
                     </div>
                     <div class="benefit-card">
                         <i class="fas fa-cogs benefit-icon"></i>
-                        <h3>Personalización</h3>
-                        <p>Adaptación completa a necesidades específicas empresariales. Configure según sus requerimientos exactos.</p>
+                        <h3>Customization</h3>
+                        <p>Complete adaptation to specific business needs. Configure according to your exact requirements.</p>
                     </div>
                 </div>
             </section>
@@ -96,76 +96,76 @@
                 <div class="card">
                     <h2 class="card-title">
                         <i class="fas fa-tasks"></i>
-                        Plan Detallado de Implementación
+                        Detailed Implementation Plan
                     </h2>
 
                     <div class="phases-grid">
                         <div class="phase-card">
                             <div class="phase-number">1</div>
-                            <h3>Preparación</h3>
-                            <p>Configuración del entorno servidor</p>
-                            <div style="margin-top: 1rem; color: var(--secondary); font-weight: 600;">8 horas</div>
+                            <h3>Preparation</h3>
+                            <p>Server Environment Setup</p>
+                            <div style="margin-top: 1rem; color: var(--secondary); font-weight: 600;">8 hours</div>
                         </div>
                         <div class="phase-card">
                             <div class="phase-number">2</div>
                             <h3>Ollama</h3>
-                            <p>Instalación y configuración del motor LLM</p>
-                            <div style="margin-top: 1rem; color: var(--secondary); font-weight: 600;">4 horas</div>
+                            <p>LLM Engine Installation and Configuration</p>
+                            <div style="margin-top: 1rem; color: var(--secondary); font-weight: 600;">4 hours</div>
                         </div>
                         <div class="phase-card">
                             <div class="phase-number">3</div>
                             <h3>OpenWebUI</h3>
-                            <p>Despliegue e integración de la interfaz</p>
-                            <div style="margin-top: 1rem; color: var(--secondary); font-weight: 600;">4 horas</div>
+                            <p>Interface Deployment and Integration</p>
+                            <div style="margin-top: 1rem; color: var(--secondary); font-weight: 600;">4 hours</div>
                         </div>
                         <div class="phase-card">
                             <div class="phase-number">4</div>
                             <h3>API Keys</h3>
-                            <p>Configuración y gestión de accesos</p>
-                            <div style="margin-top: 1rem; color: var(--secondary); font-weight: 600;">6 horas</div>
+                            <p>Access Configuration and Management</p>
+                            <div style="margin-top: 1rem; color: var(--secondary); font-weight: 600;">6 hours</div>
                         </div>
                         <div class="phase-card">
                             <div class="phase-number">5</div>
-                            <h3>Seguridad</h3>
-                            <p>Implementación de medidas de seguridad</p>
-                            <div style="margin-top: 1rem; color: var(--secondary); font-weight: 600;">8 horas</div>
+                            <h3>Security</h3>
+                            <p>Implementation of Security Measures</p>
+                            <div style="margin-top: 1rem; color: var(--secondary); font-weight: 600;">8 hours</div>
                         </div>
                         <div class="phase-card">
                             <div class="phase-number">6</div>
-                            <h3>Escalabilidad</h3>
-                            <p>Optimización y configuración para crecimiento</p>
-                            <div style="margin-top: 1rem; color: var(--secondary); font-weight: 600;">4 horas</div>
+                            <h3>Scalability</h3>
+                            <p>Optimization and Configuration for Growth</p>
+                            <div style="margin-top: 1rem; color: var(--secondary); font-weight: 600;">4 hours</div>
                         </div>
                     </div>
                 </div>
 
                 <div class="card">
-                    <h3 style="color: var(--secondary); margin-bottom: 1rem;">Detalles Técnicos Clave</h3>
+                    <h3 style="color: var(--secondary); margin-bottom: 1rem;">Key Technical Details</h3>
 
                     <div style="margin: 2rem 0;">
-                        <h4><i class="fas fa-server"></i> Requerimientos de Hardware</h4>
+                        <h4><i class="fas fa-server"></i> Hardware Requirements</h4>
                         <ul style="margin: 1rem 0; list-style: none;">
-                            <li style="padding: 0.5rem 0;"><i class="fas fa-check" style="color: var(--accent); margin-right: 0.5rem;"></i>CPU: Intel 11ª gen+ o AMD Zen 4+ con soporte AVX512</li>
-                            <li style="padding: 0.5rem 0;"><i class="fas fa-check" style="color: var(--accent); margin-right: 0.5rem;"></i>RAM: Mínimo 16 GB, recomendado 32 GB+ DDR5</li>
-                            <li style="padding: 0.5rem 0;"><i class="fas fa-check" style="color: var(--accent); margin-right: 0.5rem;"></i>Almacenamiento: Mínimo 50 GB SSD NVMe</li>
-                            <li style="padding: 0.5rem 0;"><i class="fas fa-check" style="color: var(--accent); margin-right: 0.5rem;"></i>GPU: NVIDIA con VRAM suficiente (4GB+ recomendado)</li>
+                            <li style="padding: 0.5rem 0;"><i class="fas fa-check" style="color: var(--accent); margin-right: 0.5rem;"></i>CPU: Intel 11th gen+ or AMD Zen 4+ with AVX512 support</li>
+                            <li style="padding: 0.5rem 0;"><i class="fas fa-check" style="color: var(--accent); margin-right: 0.5rem;"></i>RAM: Minimum 16 GB, recommended 32 GB+ DDR5</li>
+                            <li style="padding: 0.5rem 0;"><i class="fas fa-check" style="color: var(--accent); margin-right: 0.5rem;"></i>Storage: Minimum 50 GB NVMe SSD</li>
+                            <li style="padding: 0.5rem 0;"><i class="fas fa-check" style="color: var(--accent); margin-right: 0.5rem;"></i>GPU: NVIDIA with sufficient VRAM (4GB+ recommended)</li>
                         </ul>
                     </div>
 
                     <div style="margin: 2rem 0;">
-                        <h4><i class="fas fa-code"></i> Ejemplo de Instalación</h4>
+                        <h4><i class="fas fa-code"></i> Installation Example</h4>
                         <div class="code-block">
                             <button class="copy-btn" onclick="copyCode(this)">
                                 <i class="fas fa-copy"></i>
                             </button>
-                            <pre><code># Instalación de Ollama
+                            <pre><code># Install Ollama
 curl -fsSL https://ollama.com/install.sh | sh
 
-# Configuración del servicio
+# Configure the service
 sudo systemctl enable ollama
 sudo systemctl start ollama
 
-# Despliegue de OpenWebUI con Docker
+# Deploy OpenWebUI with Docker
 sudo docker run -d -p 8080:8080 \
     --gpus all \
     --add-host=host.docker.internal:host-gateway \
@@ -178,11 +178,11 @@ sudo docker run -d -p 8080:8080 \
                 </div>
             </section>
 
-            <section id="cronograma" class="section">
+            <section id="timeline" class="section">
                 <div class="card">
                     <h2 class="card-title">
                         <i class="fas fa-calendar-alt"></i>
-                        Cronograma del Proyecto
+                        Project Timeline
                     </h2>
 
                     <div class="chart-container">
@@ -192,51 +192,51 @@ sudo docker run -d -p 8080:8080 \
                         <table>
                             <thead>
                                 <tr>
-                                    <th>Fase del Proyecto</th>
-                                    <th>Duración</th>
-                                    <th>Semana 1</th>
-                                    <th>Semana 2</th>
-                                    <th>Semana 3</th>
+                                    <th>Project Phase</th>
+                                    <th>Duration</th>
+                                    <th>Week 1</th>
+                                    <th>Week 2</th>
+                                    <th>Week 3</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr>
-                                    <td>Preparación del Entorno</td>
+                                    <td>Environment Setup</td>
                                     <td>8h</td>
                                     <td style="background: rgba(59, 130, 246, 0.3);">████████</td>
                                     <td></td>
                                     <td></td>
                                 </tr>
                                 <tr>
-                                    <td>Instalación Ollama</td>
+                                    <td>Ollama Installation</td>
                                     <td>4h</td>
                                     <td style="background: rgba(59, 130, 246, 0.3);">████</td>
                                     <td></td>
                                     <td></td>
                                 </tr>
                                 <tr>
-                                    <td>Instalación OpenWebUI</td>
+                                    <td>OpenWebUI Installation</td>
                                     <td>4h</td>
                                     <td></td>
                                     <td style="background: rgba(245, 158, 11, 0.3);">████</td>
                                     <td></td>
                                 </tr>
                                 <tr>
-                                    <td>Configuración API Keys</td>
+                                    <td>API Keys Configuration</td>
                                     <td>6h</td>
                                     <td></td>
                                     <td style="background: rgba(245, 158, 11, 0.3);">██████</td>
                                     <td></td>
                                 </tr>
                                 <tr>
-                                    <td>Seguridad Básica</td>
+                                    <td>Basic Security</td>
                                     <td>8h</td>
                                     <td></td>
                                     <td style="background: rgba(245, 158, 11, 0.3);">████████</td>
                                     <td></td>
                                 </tr>
                                 <tr>
-                                    <td>Escalabilidad y Pruebas</td>
+                                    <td>Scalability and Testing</td>
                                     <td>12h</td>
                                     <td></td>
                                     <td></td>
@@ -248,28 +248,28 @@ sudo docker run -d -p 8080:8080 \
                 </div>
             </section>
 
-            <section id="costos" class="section">
+            <section id="costs" class="section">
                 <div class="card">
                     <h2 class="card-title">
                         <i class="fas fa-dollar-sign"></i>
-                        Estimación de Costos
+                        Cost Estimation
                     </h2>
 
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem; margin: 2rem 0;">
                         <div style="background: linear-gradient(135deg, var(--primary), var(--primary-dark)); padding: 2rem; border-radius: 20px; text-align: center;">
                             <i class="fas fa-clock" style="font-size: 2rem; margin-bottom: 1rem; opacity: 0.9;"></i>
                             <div style="font-size: 2.5rem; font-weight: 700; margin-bottom: 0.5rem;">61</div>
-                            <div style="opacity: 0.9;">Horas Totales</div>
+                            <div style="opacity: 0.9;">Total Hours</div>
                         </div>
                         <div style="background: linear-gradient(135deg, var(--secondary), #d97706); padding: 2rem; border-radius: 20px; text-align: center;">
                             <i class="fas fa-calculator" style="font-size: 2rem; margin-bottom: 1rem; opacity: 0.9;"></i>
                             <div style="font-size: 2.5rem; font-weight: 700; margin-bottom: 0.5rem;">$61X</div>
-                            <div style="opacity: 0.9;">Costo Total</div>
+                            <div style="opacity: 0.9;">Total Cost</div>
                         </div>
                         <div style="background: linear-gradient(135deg, var(--accent), #059669); padding: 2rem; border-radius: 20px; text-align: center;">
                             <i class="fas fa-calendar-week" style="font-size: 2rem; margin-bottom: 1rem; opacity: 0.9;"></i>
                             <div style="font-size: 2.5rem; font-weight: 700; margin-bottom: 0.5rem;">3</div>
-                            <div style="opacity: 0.9;">Semanas</div>
+                            <div style="opacity: 0.9;">Weeks</div>
                         </div>
                     </div>
 
@@ -280,57 +280,57 @@ sudo docker run -d -p 8080:8080 \
                         <table>
                             <thead>
                                 <tr>
-                                    <th>Fase del Proyecto</th>
-                                    <th>Horas</th>
-                                    <th>Costo (USD)</th>
-                                    <th>Porcentaje</th>
+                                    <th>Project Phase</th>
+                                    <th>Hours</th>
+                                    <th>Cost (USD)</th>
+                                    <th>Percentage</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr>
-                                    <td>Preparación del Entorno</td>
+                                    <td>Environment Setup</td>
                                     <td>8</td>
                                     <td>$8X</td>
                                     <td>13%</td>
                                 </tr>
                                 <tr>
-                                    <td>Instalación Ollama</td>
+                                    <td>Ollama Installation</td>
                                     <td>4</td>
                                     <td>$4X</td>
                                     <td>7%</td>
                                 </tr>
                                 <tr>
-                                    <td>Instalación OpenWebUI</td>
+                                    <td>OpenWebUI Installation</td>
                                     <td>4</td>
                                     <td>$4X</td>
                                     <td>7%</td>
                                 </tr>
                                 <tr>
-                                    <td>Configuración API Keys</td>
+                                    <td>API Keys Configuration</td>
                                     <td>6</td>
                                     <td>$6X</td>
                                     <td>10%</td>
                                 </tr>
                                 <tr>
-                                    <td>Seguridad Básica</td>
+                                    <td>Basic Security</td>
                                     <td>8</td>
                                     <td>$8X</td>
                                     <td>13%</td>
                                 </tr>
                                 <tr>
-                                    <td>Escalabilidad Inicial</td>
+                                    <td>Initial Scalability</td>
                                     <td>4</td>
                                     <td>$4X</td>
                                     <td>7%</td>
                                 </tr>
                                 <tr style="background: rgba(245, 158, 11, 0.2);">
-                                    <td>Pruebas Integrales</td>
+                                    <td>Comprehensive Testing</td>
                                     <td>16</td>
                                     <td>$16X</td>
                                     <td>26%</td>
                                 </tr>
                                 <tr>
-                                    <td>Documentación</td>
+                                    <td>Documentation</td>
                                     <td>8</td>
                                     <td>$8X</td>
                                     <td>13%</td>
@@ -347,11 +347,11 @@ sudo docker run -d -p 8080:8080 \
                 </div>
             </section>
 
-            <section id="recomendaciones" class="section">
+            <section id="recommendations" class="section">
                 <div class="card">
                     <h2 class="card-title">
                         <i class="fas fa-lightbulb"></i>
-                        Recomendaciones Técnicas
+                        Technical Recommendations
                     </h2>
 
                     <div class="rec-grid">
@@ -362,10 +362,10 @@ sudo docker run -d -p 8080:8080 \
                                 </div>
                                 <div>
                                     <h3>API Gateway</h3>
-                                    <span style="background: #fee2e2; color: #991b1b; padding: 0.25rem 0.5rem; border-radius: 10px; font-size: 0.75rem; font-weight: 600;">ALTA PRIORIDAD</span>
+                                    <span style="background: #fee2e2; color: #991b1b; padding: 0.25rem 0.5rem; border-radius: 10px; font-size: 0.75rem; font-weight: 600;">HIGH PRIORITY</span>
                                 </div>
                             </div>
-                            <p>Implementar Kong Gateway o Tyk para gestión avanzada de API Keys con rate limiting y cuotas. Esencial para control empresarial.</p>
+                            <p>Implement Kong Gateway or Tyk for advanced API Key management with rate limiting and quotas. Essential for enterprise control.</p>
                         </div>
 
                         <div class="rec-card priority-medium">
@@ -374,11 +374,11 @@ sudo docker run -d -p 8080:8080 \
                                     <i class="fas fa-chart-bar" style="font-size: 1.5rem;"></i>
                                 </div>
                                 <div>
-                                    <h3>Monitorización</h3>
-                                    <span style="background: #fef3c7; color: #92400e; padding: 0.25rem 0.5rem; border-radius: 10px; font-size: 0.75rem; font-weight: 600;">MEDIA PRIORIDAD</span>
+                                    <h3>Monitoring</h3>
+                                    <span style="background: #fef3c7; color: #92400e; padding: 0.25rem 0.5rem; border-radius: 10px; font-size: 0.75rem; font-weight: 600;">MEDIUM PRIORITY</span>
                                 </div>
                             </div>
-                            <p>Integrar OpenLIT para observabilidad específica de LLMs y stack ELK para logging centralizado y análisis de uso.</p>
+                            <p>Integrate OpenLIT for LLM-specific observability and ELK stack for centralized logging and usage analysis.</p>
                         </div>
 
                         <div class="rec-card priority-high">
@@ -387,11 +387,11 @@ sudo docker run -d -p 8080:8080 \
                                     <i class="fas fa-shield-virus" style="font-size: 1.5rem;"></i>
                                 </div>
                                 <div>
-                                    <h3>Seguridad Avanzada</h3>
-                                    <span style="background: #fee2e2; color: #991b1b; padding: 0.25rem 0.5rem; border-radius: 10px; font-size: 0.75rem; font-weight: 600;">ALTA PRIORIDAD</span>
+                                    <h3>Advanced Security</h3>
+                                    <span style="background: #fee2e2; color: #991b1b; padding: 0.25rem 0.5rem; border-radius: 10px; font-size: 0.75rem; font-weight: 600;">HIGH PRIORITY</span>
                                 </div>
                             </div>
-                            <p>Endurecimiento del sistema, auditorías regulares y protección contra abusos de API. Certificados SSL/TLS obligatorios.</p>
+                            <p>System hardening, regular audits, and protection against API abuse. SSL/TLS certificates mandatory.</p>
                         </div>
 
                         <div class="rec-card priority-high">
@@ -401,10 +401,10 @@ sudo docker run -d -p 8080:8080 \
                                 </div>
                                 <div>
                                     <h3>Backup & Recovery</h3>
-                                    <span style="background: #fee2e2; color: #991b1b; padding: 0.25rem 0.5rem; border-radius: 10px; font-size: 0.75rem; font-weight: 600;">ALTA PRIORIDAD</span>
+                                    <span style="background: #fee2e2; color: #991b1b; padding: 0.25rem 0.5rem; border-radius: 10px; font-size: 0.75rem; font-weight: 600;">HIGH PRIORITY</span>
                                 </div>
                             </div>
-                            <p>Implementar backups automatizados de datos persistentes y configuraciones críticas. Plan de recuperación ante desastres.</p>
+                            <p>Implement automated backups of persistent data and critical configurations. Disaster recovery plan.</p>
                         </div>
 
                         <div class="rec-card priority-medium">
@@ -413,11 +413,11 @@ sudo docker run -d -p 8080:8080 \
                                     <i class="fas fa-brain" style="font-size: 1.5rem;"></i>
                                 </div>
                                 <div>
-                                    <h3>Optimización LLM</h3>
-                                    <span style="background: #fef3c7; color: #92400e; padding: 0.25rem 0.5rem; border-radius: 10px; font-size: 0.75rem; font-weight: 600;">MEDIA PRIORIDAD</span>
+                                    <h3>LLM Optimization</h3>
+                                    <span style="background: #fef3c7; color: #92400e; padding: 0.25rem 0.5rem; border-radius: 10px; font-size: 0.75rem; font-weight: 600;">MEDIUM PRIORITY</span>
                                 </div>
                             </div>
-                            <p>Evaluar modelos cuantizados y técnicas de optimización para mejor rendimiento. Considerar GGML y ONNX.</p>
+                            <p>Evaluate quantized models and optimization techniques for better performance. Consider GGML and ONNX.</p>
                         </div>
 
                         <div class="rec-card priority-low">
@@ -426,11 +426,11 @@ sudo docker run -d -p 8080:8080 \
                                     <i class="fas fa-terminal" style="font-size: 1.5rem;"></i>
                                 </div>
                                 <div>
-                                    <h3>Automatización</h3>
-                                    <span style="background: #d1fae5; color: #065f46; padding: 0.25rem 0.5rem; border-radius: 10px; font-size: 0.75rem; font-weight: 600;">BAJA PRIORIDAD</span>
+                                    <h3>Automation</h3>
+                                    <span style="background: #d1fae5; color: #065f46; padding: 0.25rem 0.5rem; border-radius: 10px; font-size: 0.75rem; font-weight: 600;">LOW PRIORITY</span>
                                 </div>
                             </div>
-                            <p>Desarrollar scripts CLI para gestión automatizada de usuarios y API Keys. Ansible para deployments.</p>
+                            <p>Develop CLI scripts for automated user and API Key management. Ansible for deployments.</p>
                         </div>
                     </div>
                 </div>
@@ -438,41 +438,41 @@ sudo docker run -d -p 8080:8080 \
                 <div class="card" style="margin-top: 3rem;">
                     <h2 class="card-title">
                         <i class="fas fa-flag-checkered"></i>
-                        Conclusión
+                        Conclusion
                     </h2>
 
                     <div style="display: grid; gap: 2rem; margin: 2rem 0;">
                         <div style="display: flex; gap: 1rem; padding: 1.5rem; background: rgba(16, 185, 129, 0.1); border-radius: 15px; border-left: 4px solid var(--accent);">
                             <i class="fas fa-check-circle" style="font-size: 1.5rem; color: var(--accent); margin-top: 0.25rem;"></i>
                             <div>
-                                <h3 style="margin-bottom: 0.5rem;">Viabilidad Técnica</h3>
-                                <p style="opacity: 0.9;">La implementación de un servidor LLM autoalojado con OpenWebUI y Ollama es técnicamente viable y representa una alternativa sólida a servicios en la nube.</p>
+                                <h3 style="margin-bottom: 0.5rem;">Technical Viability</h3>
+                                <p style="opacity: 0.9;">The implementation of a self-hosted LLM server with OpenWebUI and Ollama is technically viable and represents a solid alternative to cloud services.</p>
                             </div>
                         </div>
 
                         <div style="display: flex; gap: 1rem; padding: 1.5rem; background: rgba(245, 158, 11, 0.1); border-radius: 15px; border-left: 4px solid var(--secondary);">
                             <i class="fas fa-key" style="font-size: 1.5rem; color: var(--secondary); margin-top: 0.25rem;"></i>
                             <div>
-                                <h3 style="margin-bottom: 0.5rem;">Factor Crítico: Gestión de API Keys</h3>
-                                <p style="opacity: 0.9;">El éxito del modelo de negocio depende fundamentalmente de la madurez de las funcionalidades de gestión de API Keys en OpenWebUI.</p>
+                                <h3 style="margin-bottom: 0.5rem;">Critical Factor: API Key Management</h3>
+                                <p style="opacity: 0.9;">The success of the business model fundamentally depends on the maturity of API Key management functionalities in OpenWebUI.</p>
                             </div>
                         </div>
 
                         <div style="display: flex; gap: 1rem; padding: 1.5rem; background: rgba(59, 130, 246, 0.1); border-radius: 15px; border-left: 4px solid var(--primary);">
                             <i class="fas fa-chart-line" style="font-size: 1.5rem; color: var(--primary); margin-top: 0.25rem;"></i>
                             <div>
-                                <h3 style="margin-bottom: 0.5rem;">Escalabilidad Planificada</h3>
-                                <p style="opacity: 0.9;">La solución está diseñada para comenzar con baja demanda pero permite crecimiento futuro mediante múltiples backends y optimizaciones.</p>
+                                <h3 style="margin-bottom: 0.5rem;">Planned Scalability</h3>
+                                <p style="opacity: 0.9;">The solution is designed to start with low demand but allows for future growth through multiple backends and optimizations.</p>
                             </div>
                         </div>
                     </div>
 
                     <div style="background: linear-gradient(135deg, var(--primary), var(--primary-dark)); padding: 2rem; border-radius: 20px; text-align: center; margin-top: 2rem;">
                         <i class="fas fa-star" style="font-size: 2rem; margin-bottom: 1rem; opacity: 0.9;"></i>
-                        <h3 style="font-size: 1.5rem; margin-bottom: 1rem;">Recomendación Final</h3>
+                        <h3 style="font-size: 1.5rem; margin-bottom: 1rem;">Final Recommendation</h3>
                         <p style="opacity: 0.95; font-size: 1.1rem; line-height: 1.6;">
-                            Con una planificación cuidadosa y ejecución diligente de los pasos descritos, es posible construir
-                            un servicio LLM on-premises potente, flexible y adaptado a las necesidades empresariales específicas.
+                            With careful planning and diligent execution of the described steps, it is possible to build
+                            a powerful, flexible on-premises LLM service tailored to specific business needs.
                         </p>
                     </div>
                 </div>
