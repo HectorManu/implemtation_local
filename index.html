@@ -6,529 +6,11 @@
     <title>Propuesta Interactiva: Servidor LLM Autoalojado con OpenWebUI</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        :root {
-            --primary: #3b82f6;
-            --primary-dark: #1d4ed8;
-            --secondary: #f59e0b;
-            --accent: #10b981;
-            --dark: #0f172a;
-            --gray-50: #f8fafc;
-            --gray-100: #f1f5f9;
-            --gray-200: #e2e8f0;
-            --gray-300: #cbd5e1;
-            --gray-600: #475569;
-            --gray-700: #334155;
-            --gray-800: #1e293b;
-            --glass: rgba(255, 255, 255, 0.1);
-            --glass-border: rgba(255, 255, 255, 0.2);
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            color: white;
-            overflow-x: hidden;
-        }
-
-        /* Animated background */
-        .bg-animation {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
-            animation: gradientShift 8s ease infinite;
-        }
-
-        @keyframes gradientShift {
-            0% { background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%); }
-            50% { background: linear-gradient(135deg, #f093fb 0%, #667eea 50%, #764ba2 100%); }
-            100% { background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%); }
-        }
-
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 0 2rem;
-        }
-
-        /* Header */
-        .header {
-            padding: 2rem 0;
-            position: relative;
-            text-align: center;
-            background: rgba(0, 0, 0, 0.1);
-            backdrop-filter: blur(10px);
-        }
-
-        .header::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E") repeat;
-            opacity: 0.5;
-        }
-
-        .logo {
-            display: inline-flex;
-            align-items: center;
-            gap: 1rem;
-            font-size: 3rem;
-            font-weight: 800;
-            margin-bottom: 1rem;
-            background: linear-gradient(45deg, #fff, #e2e8f0);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .logo i {
-            color: var(--secondary);
-            text-shadow: 0 0 30px rgba(245, 158, 11, 0.5);
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-        }
-
-        .subtitle {
-            font-size: 1.25rem;
-            opacity: 0.9;
-            font-weight: 400;
-        }
-
-        /* Navigation */
-        .nav {
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            background: var(--glass);
-            backdrop-filter: blur(20px);
-            border-bottom: 1px solid var(--glass-border);
-            padding: 1rem 0;
-        }
-
-        .nav-container {
-            display: flex;
-            justify-content: center;
-            gap: 2rem;
-            flex-wrap: wrap;
-        }
-
-        .nav-item {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.75rem 1.5rem;
-            background: var(--glass);
-            border: 1px solid var(--glass-border);
-            border-radius: 50px;
-            color: white;
-            text-decoration: none;
-            font-weight: 500;
-            transition: all 0.3s ease;
-            backdrop-filter: blur(10px);
-        }
-
-        .nav-item:hover, .nav-item.active {
-            background: rgba(255, 255, 255, 0.2);
-            transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-        }
-
-        /* Main Content */
-        .main {
-            padding: 4rem 0;
-        }
-
-        .section {
-            display: none;
-            margin-bottom: 4rem;
-        }
-
-        .section.active {
-            display: block;
-            animation: fadeInUp 0.6s ease;
-        }
-
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        /* Cards */
-        .card {
-            background: var(--glass);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border);
-            border-radius: 20px;
-            padding: 2rem;
-            margin-bottom: 2rem;
-            transition: all 0.3s ease;
-        }
-
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
-            background: rgba(255, 255, 255, 0.15);
-        }
-
-        .card-title {
-            font-size: 2rem;
-            font-weight: 700;
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .card-title i {
-            color: var(--secondary);
-            text-shadow: 0 0 20px rgba(245, 158, 11, 0.5);
-        }
-
-        /* Hero Section */
-        .hero {
-            text-align: center;
-            padding: 4rem 0;
-        }
-
-        .hero-title {
-            font-size: 3.5rem;
-            font-weight: 800;
-            margin-bottom: 1.5rem;
-            background: linear-gradient(45deg, #fff, #e2e8f0, #cbd5e1);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            line-height: 1.2;
-        }
-
-        .hero-description {
-            font-size: 1.25rem;
-            opacity: 0.9;
-            max-width: 800px;
-            margin: 0 auto 3rem;
-            line-height: 1.6;
-        }
-
-        .highlight-box {
-            background: linear-gradient(135deg, var(--secondary), #ef4444);
-            padding: 2rem;
-            border-radius: 20px;
-            margin: 2rem 0;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .highlight-box::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-            animation: shimmer 3s infinite;
-        }
-
-        @keyframes shimmer {
-            0% { transform: translateX(-100%) translateY(-100%) rotate(30deg); }
-            100% { transform: translateX(100%) translateY(100%) rotate(30deg); }
-        }
-
-        .benefits-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
-            margin: 3rem 0;
-        }
-
-        .benefit-card {
-            background: var(--glass);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border);
-            border-radius: 20px;
-            padding: 2rem;
-            text-align: center;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .benefit-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 4px;
-            background: linear-gradient(90deg, var(--primary), var(--secondary), var(--accent));
-        }
-
-        .benefit-card:hover {
-            transform: translateY(-10px) scale(1.02);
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
-        }
-
-        .benefit-icon {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-            background: linear-gradient(45deg, var(--secondary), var(--accent));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        /* Phase Timeline */
-        .phases-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1.5rem;
-            margin: 3rem 0;
-        }
-
-        .phase-card {
-            background: var(--glass);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border);
-            border-radius: 20px;
-            padding: 2rem;
-            text-align: center;
-            position: relative;
-            transition: all 0.3s ease;
-        }
-
-        .phase-card:hover {
-            transform: translateY(-5px);
-            background: rgba(255, 255, 255, 0.2);
-        }
-
-        .phase-number {
-            width: 60px;
-            height: 60px;
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            font-weight: 700;
-            margin: 0 auto 1rem;
-            box-shadow: 0 10px 30px rgba(59, 130, 246, 0.3);
-        }
-
-        /* Chart Container */
-        .chart-container {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(20px);
-            border-radius: 20px;
-            padding: 2rem;
-            margin: 2rem 0;
-            border: 1px solid var(--glass-border);
-        }
-
-        /* Responsive Tables */
-        .table-container {
-            overflow-x: auto;
-            background: var(--glass);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border);
-            border-radius: 20px;
-            margin: 2rem 0;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        th, td {
-            padding: 1rem;
-            text-align: left;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        th {
-            background: rgba(255, 255, 255, 0.1);
-            font-weight: 600;
-        }
-
-        tr:hover {
-            background: rgba(255, 255, 255, 0.05);
-        }
-
-        /* Code Blocks */
-        .code-block {
-            background: rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 15px;
-            padding: 1.5rem;
-            margin: 1rem 0;
-            font-family: 'Monaco', monospace;
-            font-size: 0.9rem;
-            position: relative;
-            overflow-x: auto;
-        }
-
-        .copy-btn {
-            position: absolute;
-            top: 1rem;
-            right: 1rem;
-            background: var(--secondary);
-            border: none;
-            border-radius: 8px;
-            color: white;
-            padding: 0.5rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .copy-btn:hover {
-            background: #d97706;
-            transform: scale(1.1);
-        }
-
-        /* Recommendations */
-        .rec-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 2rem;
-            margin: 3rem 0;
-        }
-
-        .rec-card {
-            background: var(--glass);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border);
-            border-radius: 20px;
-            padding: 2rem;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .rec-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 4px;
-            background: linear-gradient(90deg, var(--accent), var(--secondary));
-        }
-
-        .rec-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-        }
-
-        .priority-high {
-            border-left: 4px solid #ef4444;
-        }
-
-        .priority-medium {
-            border-left: 4px solid var(--secondary);
-        }
-
-        .priority-low {
-            border-left: 4px solid var(--accent);
-        }
-
-        /* Mobile Responsive */
-        @media (max-width: 768px) {
-            .container {
-                padding: 0 1rem;
-            }
-
-            .hero-title {
-                font-size: 2.5rem;
-            }
-
-            .nav-container {
-                gap: 1rem;
-            }
-
-            .nav-item {
-                padding: 0.5rem 1rem;
-                font-size: 0.9rem;
-            }
-
-            .benefits-grid,
-            .phases-grid,
-            .rec-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .card {
-                padding: 1.5rem;
-            }
-
-            .card-title {
-                font-size: 1.5rem;
-            }
-        }
-
-        /* Scroll animations */
-        .animate-on-scroll {
-            opacity: 0;
-            transform: translateY(30px);
-            transition: all 0.6s ease;
-        }
-
-        .animate-on-scroll.visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        /* Loading states */
-        .loading {
-            position: relative;
-            overflow: hidden;
-        }
-
-        .loading::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-            animation: loading 1.5s infinite;
-        }
-
-        @keyframes loading {
-            100% { left: 100%; }
-        }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="bg-animation"></div>
-    
+
     <header class="header">
         <div class="container">
             <div class="logo">
@@ -575,7 +57,7 @@
                 <div class="hero">
                     <h1 class="hero-title">Transforme su Infraestructura AI</h1>
                     <p class="hero-description">
-                        Implemente un servidor de modelos de lenguaje grandes (LLM) autoalojado con control total 
+                        Implemente un servidor de modelos de lenguaje grandes (LLM) autoalojado con control total
                         sobre su infraestructura y datos. Una alternativa local profesional a servicios como ChatGPT.
                     </p>
                 </div>
@@ -586,7 +68,7 @@
                         Objetivo Principal
                     </h3>
                     <p style="font-size: 1.1rem; opacity: 0.95;">
-                        Implementar un servidor LLM autoalojado utilizando OpenWebUI como interfaz, 
+                        Implementar un servidor LLM autoalojado utilizando OpenWebUI como interfaz,
                         permitiendo la generación y administración de claves API para el consumo controlado y seguro de modelos.
                     </p>
                 </div>
@@ -616,7 +98,7 @@
                         <i class="fas fa-tasks"></i>
                         Plan Detallado de Implementación
                     </h2>
-                    
+
                     <div class="phases-grid">
                         <div class="phase-card">
                             <div class="phase-number">1</div>
@@ -659,7 +141,7 @@
 
                 <div class="card">
                     <h3 style="color: var(--secondary); margin-bottom: 1rem;">Detalles Técnicos Clave</h3>
-                    
+
                     <div style="margin: 2rem 0;">
                         <h4><i class="fas fa-server"></i> Requerimientos de Hardware</h4>
                         <ul style="margin: 1rem 0; list-style: none;">
@@ -702,10 +184,9 @@ sudo docker run -d -p 8080:8080 \
                         <i class="fas fa-calendar-alt"></i>
                         Cronograma del Proyecto
                     </h2>
-                    
+
                     <div class="chart-container">
-                        <canvas id="timelineChart" width="400" height="200"></canvas>
-                    </div>
+                        <canvas id="timelineChart"></canvas> </div>
 
                     <div class="table-container">
                         <table>
@@ -773,7 +254,7 @@ sudo docker run -d -p 8080:8080 \
                         <i class="fas fa-dollar-sign"></i>
                         Estimación de Costos
                     </h2>
-                    
+
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem; margin: 2rem 0;">
                         <div style="background: linear-gradient(135deg, var(--primary), var(--primary-dark)); padding: 2rem; border-radius: 20px; text-align: center;">
                             <i class="fas fa-clock" style="font-size: 2rem; margin-bottom: 1rem; opacity: 0.9;"></i>
@@ -793,8 +274,7 @@ sudo docker run -d -p 8080:8080 \
                     </div>
 
                     <div class="chart-container">
-                        <canvas id="costChart" width="400" height="200"></canvas>
-                    </div>
+                        <canvas id="costChart"></canvas> </div>
 
                     <div class="table-container">
                         <table>
@@ -873,7 +353,7 @@ sudo docker run -d -p 8080:8080 \
                         <i class="fas fa-lightbulb"></i>
                         Recomendaciones Técnicas
                     </h2>
-                    
+
                     <div class="rec-grid">
                         <div class="rec-card priority-high">
                             <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
@@ -960,7 +440,7 @@ sudo docker run -d -p 8080:8080 \
                         <i class="fas fa-flag-checkered"></i>
                         Conclusión
                     </h2>
-                    
+
                     <div style="display: grid; gap: 2rem; margin: 2rem 0;">
                         <div style="display: flex; gap: 1rem; padding: 1.5rem; background: rgba(16, 185, 129, 0.1); border-radius: 15px; border-left: 4px solid var(--accent);">
                             <i class="fas fa-check-circle" style="font-size: 1.5rem; color: var(--accent); margin-top: 0.25rem;"></i>
@@ -991,7 +471,7 @@ sudo docker run -d -p 8080:8080 \
                         <i class="fas fa-star" style="font-size: 2rem; margin-bottom: 1rem; opacity: 0.9;"></i>
                         <h3 style="font-size: 1.5rem; margin-bottom: 1rem;">Recomendación Final</h3>
                         <p style="opacity: 0.95; font-size: 1.1rem; line-height: 1.6;">
-                            Con una planificación cuidadosa y ejecución diligente de los pasos descritos, es posible construir 
+                            Con una planificación cuidadosa y ejecución diligente de los pasos descritos, es posible construir
                             un servicio LLM on-premises potente, flexible y adaptado a las necesidades empresariales específicas.
                         </p>
                     </div>
@@ -1000,207 +480,7 @@ sudo docker run -d -p 8080:8080 \
         </div>
     </main>
 
-    <script>
-        // Navigation functionality
-        function showSection(sectionId, navElement) {
-            // Hide all sections
-            document.querySelectorAll('.section').forEach(section => {
-                section.classList.remove('active');
-            });
-            
-            // Show target section
-            const targetSection = document.getElementById(sectionId);
-            if (targetSection) { // Buena práctica verificar si el elemento existe
-                targetSection.classList.add('active');
-            } else {
-                // Si la sección no se encuentra, mostrar un error en la consola puede ayudar a depurar.
-                console.error("Error: No se encontró la sección con ID:", sectionId);
-            }
-            
-            // Update nav active state
-            document.querySelectorAll('.nav-item').forEach(nav => {
-                nav.classList.remove('active');
-            });
-            if (navElement && navElement.classList) { // Verificar que navElement es un elemento válido
-                 navElement.classList.add('active');
-            }
-
-
-            // Initialize charts when showing relevant sections
-            if (sectionId === 'cronograma') {
-                setTimeout(initTimelineChart, 100);
-            } else if (sectionId === 'costos') {
-                setTimeout(initCostChart, 100);
-            }
-        }
-
-        // Copy code functionality
-        function copyCode(button) {
-            const codeBlock = button.nextElementSibling.querySelector('code');
-            const text = codeBlock.textContent;
-            
-            navigator.clipboard.writeText(text).then(() => {
-                const originalHTML = button.innerHTML;
-                button.innerHTML = '<i class="fas fa-check"></i>';
-                button.style.background = 'var(--accent)';
-                
-                setTimeout(() => {
-                    button.innerHTML = originalHTML;
-                    button.style.background = 'var(--secondary)';
-                }, 2000);
-            }).catch(err => {
-                console.error('Error al copiar el código: ', err);
-            });
-        }
-
-        // Initialize timeline chart
-        function initTimelineChart() {
-            const canvas = document.getElementById('timelineChart');
-            if (!canvas) {
-                console.error("Elemento canvas 'timelineChart' no encontrado para inicializar el gráfico.");
-                return;
-            }
-            // Asegurarse que el canvas es visible y tiene dimensiones antes de inicializar el gráfico
-            if (canvas.offsetParent === null) { // Una forma de chequear si es visible
-                 console.warn("Canvas 'timelineChart' puede no estar visible al inicializar Chart.js.");
-            }
-            
-            const ctx = canvas.getContext('2d');
-            
-            new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: ['Preparación', 'Ollama', 'OpenWebUI', 'API Keys', 'Seguridad', 'Escalabilidad'],
-                    datasets: [{
-                        label: 'Horas',
-                        data: [8, 4, 4, 6, 8, 4],
-                        backgroundColor: [
-                            'rgba(59, 130, 246, 0.8)',
-                            'rgba(245, 158, 11, 0.8)',
-                            'rgba(16, 185, 129, 0.8)',
-                            'rgba(239, 68, 68, 0.8)',
-                            'rgba(139, 92, 246, 0.8)',
-                            'rgba(6, 182, 212, 0.8)'
-                        ],
-                        borderColor: [
-                            'rgba(59, 130, 246, 1)',
-                            'rgba(245, 158, 11, 1)',
-                            'rgba(16, 185, 129, 1)',
-                            'rgba(239, 68, 68, 1)',
-                            'rgba(139, 92, 246, 1)',
-                            'rgba(6, 182, 212, 1)'
-                        ],
-                        borderWidth: 2,
-                        borderRadius: 8
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false, // Añadido para mejor responsividad en contenedores flexibles
-                    plugins: {
-                        legend: {
-                            display: false
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                color: 'white'
-                            },
-                            grid: {
-                                color: 'rgba(255, 255, 255, 0.1)'
-                            }
-                        },
-                        x: {
-                            ticks: {
-                                color: 'white'
-                            },
-                            grid: {
-                                color: 'rgba(255, 255, 255, 0.1)'
-                            }
-                        }
-                    }
-                }
-            });
-        }
-
-        // Initialize cost chart
-        function initCostChart() {
-            const canvas = document.getElementById('costChart');
-             if (!canvas) {
-                console.error("Elemento canvas 'costChart' no encontrado para inicializar el gráfico.");
-                return;
-            }
-            if (canvas.offsetParent === null) {
-                 console.warn("Canvas 'costChart' puede no estar visible al inicializar Chart.js.");
-            }
-            
-            const ctx = canvas.getContext('2d');
-            
-            new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Preparación (13%)', 'Pruebas (26%)', 'Seguridad (13%)', 'Documentación (13%)', 'API Keys (10%)', 'Otros (25%)'],
-                    datasets: [{
-                        data: [13, 26, 13, 13, 10, 25],
-                        backgroundColor: [
-                            'rgba(59, 130, 246, 0.8)',
-                            'rgba(245, 158, 11, 0.8)',
-                            'rgba(16, 185, 129, 0.8)',
-                            'rgba(239, 68, 68, 0.8)',
-                            'rgba(139, 92, 246, 0.8)',
-                            'rgba(6, 182, 212, 0.8)'
-                        ],
-                        borderColor: 'rgba(255, 255, 255, 0.2)',
-                        borderWidth: 2
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false, // Añadido
-                    plugins: {
-                        legend: {
-                            labels: {
-                                color: 'white'
-                            }
-                        }
-                    }
-                }
-            });
-        }
-
-        // Scroll animations
-        function animateOnScroll() {
-            const elements = document.querySelectorAll('.animate-on-scroll');
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.classList.add('visible');
-                        // Opcional: dejar de observar el elemento una vez que es visible si la animación es de una sola vez
-                        // observer.unobserve(entry.target); 
-                    }
-                    // Opcional: si quieres que la animación se revierta cuando sale del viewport
-                    // else {
-                    //    entry.target.classList.remove('visible');
-                    // }
-                });
-            }, { threshold: 0.1 }); // El 10% del elemento debe estar visible
-
-            elements.forEach(el => observer.observe(el));
-        }
-
-        // Initialize when DOM is loaded
-        document.addEventListener('DOMContentLoaded', function() {
-            // Add scroll animations to cards AFTER the initial setup
-            // Ensure this runs after any dynamic content might be loaded if applicable,
-            // though for this structure, DOMContentLoaded is fine.
-            document.querySelectorAll('.card, .benefit-card, .phase-card, .rec-card').forEach(el => {
-                el.classList.add('animate-on-scroll');
-            });
-            
-            animateOnScroll(); // Then, setup the observers
-        });
-    </script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
