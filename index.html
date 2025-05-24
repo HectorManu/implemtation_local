@@ -529,7 +529,6 @@
 <body>
     <div class="bg-animation"></div>
     
-    <!-- Header -->
     <header class="header">
         <div class="container">
             <div class="logo">
@@ -543,7 +542,6 @@
         </div>
     </header>
 
-    <!-- Navigation -->
     <nav class="nav">
         <div class="container">
             <div class="nav-container">
@@ -571,10 +569,8 @@
         </div>
     </nav>
 
-    <!-- Main Content -->
     <main class="main">
         <div class="container">
-            <!-- Introducción -->
             <section id="introduccion" class="section active">
                 <div class="hero">
                     <h1 class="hero-title">Transforme su Infraestructura AI</h1>
@@ -614,7 +610,6 @@
                 </div>
             </section>
 
-            <!-- Plan de Implementación -->
             <section id="plan" class="section">
                 <div class="card">
                     <h2 class="card-title">
@@ -701,7 +696,6 @@ sudo docker run -d -p 8080:8080 \
                 </div>
             </section>
 
-            <!-- Cronograma -->
             <section id="cronograma" class="section">
                 <div class="card">
                     <h2 class="card-title">
@@ -773,7 +767,6 @@ sudo docker run -d -p 8080:8080 \
                 </div>
             </section>
 
-            <!-- Costos -->
             <section id="costos" class="section">
                 <div class="card">
                     <h2 class="card-title">
@@ -874,7 +867,6 @@ sudo docker run -d -p 8080:8080 \
                 </div>
             </section>
 
-            <!-- Recomendaciones -->
             <section id="recomendaciones" class="section">
                 <div class="card">
                     <h2 class="card-title">
@@ -963,7 +955,6 @@ sudo docker run -d -p 8080:8080 \
                     </div>
                 </div>
 
-                <!-- Conclusión -->
                 <div class="card" style="margin-top: 3rem;">
                     <h2 class="card-title">
                         <i class="fas fa-flag-checkered"></i>
@@ -1018,13 +1009,22 @@ sudo docker run -d -p 8080:8080 \
             });
             
             // Show target section
-            document.getElementById(sectionId).classList.add('active');
+            const targetSection = document.getElementById(sectionId);
+            if (targetSection) { // Buena práctica verificar si el elemento existe
+                targetSection.classList.add('active');
+            } else {
+                // Si la sección no se encuentra, mostrar un error en la consola puede ayudar a depurar.
+                console.error("Error: No se encontró la sección con ID:", sectionId);
+            }
             
             // Update nav active state
             document.querySelectorAll('.nav-item').forEach(nav => {
                 nav.classList.remove('active');
             });
-            navElement.classList.add('active');
+            if (navElement && navElement.classList) { // Verificar que navElement es un elemento válido
+                 navElement.classList.add('active');
+            }
+
 
             // Initialize charts when showing relevant sections
             if (sectionId === 'cronograma') {
@@ -1048,13 +1048,22 @@ sudo docker run -d -p 8080:8080 \
                     button.innerHTML = originalHTML;
                     button.style.background = 'var(--secondary)';
                 }, 2000);
+            }).catch(err => {
+                console.error('Error al copiar el código: ', err);
             });
         }
 
         // Initialize timeline chart
         function initTimelineChart() {
             const canvas = document.getElementById('timelineChart');
-            if (!canvas) return;
+            if (!canvas) {
+                console.error("Elemento canvas 'timelineChart' no encontrado para inicializar el gráfico.");
+                return;
+            }
+            // Asegurarse que el canvas es visible y tiene dimensiones antes de inicializar el gráfico
+            if (canvas.offsetParent === null) { // Una forma de chequear si es visible
+                 console.warn("Canvas 'timelineChart' puede no estar visible al inicializar Chart.js.");
+            }
             
             const ctx = canvas.getContext('2d');
             
@@ -1087,6 +1096,7 @@ sudo docker run -d -p 8080:8080 \
                 },
                 options: {
                     responsive: true,
+                    maintainAspectRatio: false, // Añadido para mejor responsividad en contenedores flexibles
                     plugins: {
                         legend: {
                             display: false
@@ -1118,7 +1128,13 @@ sudo docker run -d -p 8080:8080 \
         // Initialize cost chart
         function initCostChart() {
             const canvas = document.getElementById('costChart');
-            if (!canvas) return;
+             if (!canvas) {
+                console.error("Elemento canvas 'costChart' no encontrado para inicializar el gráfico.");
+                return;
+            }
+            if (canvas.offsetParent === null) {
+                 console.warn("Canvas 'costChart' puede no estar visible al inicializar Chart.js.");
+            }
             
             const ctx = canvas.getContext('2d');
             
@@ -1142,6 +1158,7 @@ sudo docker run -d -p 8080:8080 \
                 },
                 options: {
                     responsive: true,
+                    maintainAspectRatio: false, // Añadido
                     plugins: {
                         legend: {
                             labels: {
@@ -1160,21 +1177,29 @@ sudo docker run -d -p 8080:8080 \
                 entries.forEach(entry => {
                     if (entry.isIntersecting) {
                         entry.target.classList.add('visible');
+                        // Opcional: dejar de observar el elemento una vez que es visible si la animación es de una sola vez
+                        // observer.unobserve(entry.target); 
                     }
+                    // Opcional: si quieres que la animación se revierta cuando sale del viewport
+                    // else {
+                    //    entry.target.classList.remove('visible');
+                    // }
                 });
-            }, { threshold: 0.1 });
+            }, { threshold: 0.1 }); // El 10% del elemento debe estar visible
 
             elements.forEach(el => observer.observe(el));
         }
 
         // Initialize when DOM is loaded
         document.addEventListener('DOMContentLoaded', function() {
-            animateOnScroll();
-            
-            // Add scroll animations to cards
+            // Add scroll animations to cards AFTER the initial setup
+            // Ensure this runs after any dynamic content might be loaded if applicable,
+            // though for this structure, DOMContentLoaded is fine.
             document.querySelectorAll('.card, .benefit-card, .phase-card, .rec-card').forEach(el => {
                 el.classList.add('animate-on-scroll');
             });
+            
+            animateOnScroll(); // Then, setup the observers
         });
     </script>
 </body>
