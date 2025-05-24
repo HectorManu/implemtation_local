@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Propuesta Interactiva: Servidor LLM Autoalojado con OpenWebUI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Visualization & Content Choices: 
+        - Report Text (all sections): Inform -> Styled HTML text blocks -> Readability -> HTML, Tailwind.
+        - Code Snippets (Docker, Nginx): Inform -> Styled code blocks with copy button -> Usability -> HTML <pre><code>, Tailwind, JS.
+        - Diagrama de Gantt (Source Table): Organize/Inform -> HTML Table -> Direct representation -> HTML, Tailwind.
+        - Horas Estimadas por Fase (Chart): Compare/Inform -> Vertical Bar Chart (Chart.js) -> Visual summary of effort -> Chart.js (Canvas).
+        - Estimación de Costos (Table): Organize/Inform -> HTML Table -> Direct representation -> HTML, Tailwind.
+        - Navigation: Facilitate exploration -> Sidebar menu -> Click to scroll/show section -> Standard SPA navigation -> JS.
+    -->
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .content-section { display: none; }
+        .content-section.active { display: block; }
+        .code-block { position: relative; }
+        .copy-button {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background-color: #4B5563; /* bg-gray-700 */
+            color: white;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+            border-radius: 0.25rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .copy-button:hover { background-color: #374151; /* bg-gray-800 */ }
+        .sidebar-link.active { background-color: #D97706; /* bg-amber-600 */ color: white; }
+        .sidebar-link:hover { background-color: #FDE68A; /* bg-amber-200 */ color: #78350F; /* text-amber-800 */ }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 400px;
+            max-height: 50vh;
+        }
+        @media (min-width: 768px) {
+            .chart-container { height: 450px; }
+        }
+        h2 { font-size: 1.75rem; font-weight: 600; margin-bottom: 1rem; color: #78350F; /* text-amber-700 */ }
+        h3 { font-size: 1.5rem; font-weight: 600; margin-top: 1.5rem; margin-bottom: 0.75rem; color: #B45309; /* text-amber-600 */ }
+        h4 { font-size: 1.25rem; font-weight: 600; margin-top: 1rem; margin-bottom: 0.5rem; color: #92400E; /* text-amber-700 */ }
+        p, li { line-height: 1.65; margin-bottom: 0.75rem; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 1rem; }
+        th, td { border: 1px solid #D1D5DB; /* border-gray-300 */ padding: 0.75rem; text-align: left; }
+        th { background-color: #F3F4F6; /* bg-gray-100 */ font-weight: 600; }
+        pre { background-color: #1F2937; /* bg-gray-800 */ color: #F3F4F6; /* text-gray-100 */ padding: 1rem; border-radius: 0.375rem; /* rounded-md */ overflow-x: auto; margin-bottom: 1rem; }
+        code { font-family: 'Courier New', Courier, monospace; }
+        .sub-nav-link.active { font-weight: bold; color: #D97706; /* text-amber-600 */ }
+    </style>
+</head>
+<body class="bg-stone-100 text-stone-800 flex">
+
+    <aside class="w-64 bg-stone-50 p-4 space-y-2 fixed top-0 left-0 h-screen overflow-y-auto shadow-lg">
+        <h1 class="text-xl font-bold text-amber-700 mb-6 border-b-2 border-amber-600 pb-2">Propuesta OpenWebUI</h1>
+        <nav>
+            <a href="#introduccion" class="sidebar-link block py-2 px-3 rounded transition-colors duration-200">Introducción</a>
+            <div>
+                <a href="#plan" class="sidebar-link block py-2 px-3 rounded transition-colors duration-200">Plan de Implementación</a>
+                <div class="ml-4 mt-1 space-y-1 border-l border-stone-300 pl-3">
+                    <a href="#fase1" class="sub-nav-link block py-1 px-2 text-sm text-stone-600 hover:text-amber-600">Fase 1: Preparación</a>
+                    <a href="#fase2" class="sub-nav-link block py-1 px-2 text-sm text-stone-600 hover:text-amber-600">Fase 2: Ollama</a>
+                    <a href="#fase3" class="sub-nav-link block py-1 px-2 text-sm text-stone-600 hover:text-amber-600">Fase 3: OpenWebUI</a>
+                    <a href="#fase4" class="sub-nav-link block py-1 px-2 text-sm text-stone-600 hover:text-amber-600">Fase 4: API Keys</a>
+                    <a href="#fase5" class="sub-nav-link block py-1 px-2 text-sm text-stone-600 hover:text-amber-600">Fase 5: Seguridad</a>
+                    <a href="#fase6" class="sub-nav-link block py-1 px-2 text-sm text-stone-600 hover:text-amber-600">Fase 6: Escalabilidad</a>
+                </div>
+            </div>
+            <a href="#gantt" class="sidebar-link block py-2 px-3 rounded transition-colors duration-200">Diagrama de Gantt</a>
+            <a href="#costos" class="sidebar-link block py-2 px-3 rounded transition-colors duration-200">Estimación de Costos</a>
+            <a href="#recomendaciones" class="sidebar-link block py-2 px-3 rounded transition-colors duration-200">Recomendaciones Técnicas</a>
+            <a href="#conclusion" class="sidebar-link block py-2 px-3 rounded transition-colors duration-200">Conclusión</a>
+        </nav>
+    </aside>
+
+    <main class="ml-64 p-8 flex-1 overflow-y-auto bg-white rounded-lg shadow-inner m-2">
+        <div id="introduccion" class="content-section">
+            <h2>1. Introducción</h2>
+            <p>Esta sección introduce la propuesta para implementar un servidor de Modelos de Lenguaje Grandes (LLM) autoalojado. El objetivo es ofrecer una alternativa local a servicios como ChatGPT, permitiendo a las empresas gestionar sus propias API Keys para un uso controlado y seguro dentro de su infraestructura. Podrá explorar los detalles de esta solución innovadora, pensada para organizaciones con necesidades específicas de privacidad y control.</p>
+            <p>El presente informe detalla un plan estratégico para la implementación de un servidor de modelos de lenguaje grandes (LLM) autoalojado, utilizando OpenWebUI como interfaz y motor de gestión. El objetivo principal es ofrecer a las empresas una alternativa local (on-premises) a servicios como la API de ChatGPT, permitiendo la generación y administración de claves API para el consumo de modelos de manera controlada y segura dentro de la propia infraestructura del cliente. Esta solución está orientada a organizaciones con necesidades específicas de privacidad, control o con una demanda de uso que no justifica la dependencia continua de servicios en la nube de terceros. Se abordarán la instalación, configuración, seguridad básica, gestión de API keys y consideraciones de escalabilidad para un uso interno empresarial, con un enfoque en la personalización para clientes con requisitos particulares o de baja demanda.</p>
+        </div>
+
+        <div id="plan" class="content-section">
+            <h2>2. Plan Detallado de Implementación</h2>
+            <p>Aquí se describe el plan paso a paso para la puesta en marcha del servidor LLM. Esta sección está dividida en seis fases críticas, desde la preparación del entorno del servidor hasta las consideraciones iniciales de escalabilidad y rendimiento. Cada fase detalla las acciones y configuraciones necesarias para asegurar una implementación exitosa y robusta del sistema.</p>
+            
+            <div id="fase1" class="pt-4">
+                <h3>2.1. Fase 1: Preparación del Entorno del Servidor</h3>
+                <p>La base de cualquier sistema robusto es un entorno de servidor adecuadamente preparado.</p>
+                <h4>2.1.1. Selección y Configuración del Hardware:</h4>
+                <ul>
+                    <li><strong>CPU:</strong> Se recomienda una CPU moderna, preferiblemente Intel de 11ª generación o AMD Zen 4 o superior, que incluya soporte para AVX512, ya que esta instrucción acelera las operaciones de multiplicación de matrices cruciales para los modelos de IA. El soporte para memoria RAM DDR5 también es beneficioso por su mayor ancho de banda.[1]</li>
+                    <li><strong>RAM:</strong> Un mínimo de 16 GB es el punto de partida para ejecutar modelos de 7 mil millones de parámetros (7B) de manera efectiva. Para una experiencia fluida y la capacidad de manejar modelos más grandes o múltiples contextos de usuario, se recomiendan 32 GB o más. Algunos modelos, como Llama 3.1 8B, pueden requerir alrededor de 5 GB solo para el modelo.[1, 2]</li>
+                    <li><strong>Almacenamiento:</strong> Se necesita un mínimo de 50 GB de espacio en disco rápido (SSD NVMe recomendado). Esto debe acomodar el sistema operativo, Docker, las imágenes de OpenWebUI (aprox. 2-5 GB), los modelos LLM descargados (que pueden variar desde unos pocos GB hasta decenas de GB cada uno) y los datos persistentes de OpenWebUI.[1, 2]</li>
+                    <li><strong>GPU:</strong> Aunque no es estrictamente obligatorio para OpenWebUI en sí (que puede conectarse a LLMs remotos), es altamente recomendable para ejecutar Ollama localmente con un rendimiento aceptable. Una GPU NVIDIA con suficiente VRAM es crucial. Para modelos cuantizados de 4 bits: un modelo 7B requiere ~4 GB de VRAM, un 13B ~8 GB, y un 30B ~16 GB.[1] La elección de la GPU impactará directamente la velocidad de inferencia y la cantidad de usuarios concurrentes que el sistema puede soportar.</li>
+                </ul>
+                <h4>2.1.2. Instalación del Sistema Operativo y Software Base:</h4>
+                <ul>
+                    <li><strong>Sistema Operativo:</strong> Se recomienda una distribución de Linux estable y ampliamente soportada, como Ubuntu Server (e.g., 22.04 LTS o 24.04 LTS) o Debian.[2, 3]</li>
+                    <li><strong>Docker y Docker Compose:</strong> La instalación de la última versión estable de Docker Engine y Docker Compose es fundamental, ya que OpenWebUI se despliega preferentemente como un contenedor Docker.[4, 5] Se recomienda usar el paquete oficial de Docker en lugar de las versiones empaquetadas por la distribución para asegurar la compatibilidad con características como `host.docker.internal`.[6]</li>
+                </ul>
+                <h4>2.1.3. Configuración de Red:</h4>
+                <ul>
+                    <li><strong>Dirección IP Estática:</strong> Asignar una dirección IP estática al servidor para asegurar una conectividad predecible.</li>
+                    <li><strong>DNS:</strong> Si el servicio va a ser accesible mediante un nombre de dominio (incluso internamente), configurar los registros DNS correspondientes.</li>
+                    <li><strong>Firewall:</strong> Planificar la configuración del firewall (e.g., UFW en Ubuntu) para permitir el tráfico necesario (SSH, HTTP/HTTPS, y cualquier puerto específico que Ollama o OpenWebUI puedan necesitar si no están detrás de un proxy).</li>
+                </ul>
+            </div>
+
+            <div id="fase2" class="pt-4">
+                <h3>2.2. Fase 2: Instalación y Configuración de Ollama</h3>
+                <p>Ollama actuará como el motor para ejecutar los LLMs localmente. OpenWebUI se conectará a la API de Ollama para interactuar con estos modelos.[7, 8]</p>
+                <h4>2.2.1. Instalación de Ollama:</h4>
+                <ul>
+                    <li>El método más sencillo es mediante el script de instalación proporcionado por Ollama:
+                        <div class="code-block">
+                            <button class="copy-button">Copiar</button>
+                            <pre><code>curl -fsSL https://ollama.com/install.sh | sh</code></pre>
+                        </div>
+                        Alternativamente, se pueden seguir las instrucciones manuales si se requiere un control más granular.[4]
+                    </li>
+                    <li>La instalación típicamente crea un usuario `ollama` y un servicio systemd para gestionar el proceso de Ollama.[4]</li>
+                </ul>
+                <h4>2.2.2. Configuración del Servicio Ollama:</h4>
+                <ul>
+                    <li>Asegurar que el servicio Ollama esté configurado para iniciarse automáticamente con el sistema:
+                        <div class="code-block">
+                            <button class="copy-button">Copiar</button>
+                            <pre><code>sudo systemctl enable ollama
+sudo systemctl start ollama</code></pre>
+                        </div>[4]
+                    </li>
+                    <li>Verificar el estado del servicio:
+                        <div class="code-block">
+                            <button class="copy-button">Copiar</button>
+                            <pre><code>sudo systemctl status ollama</code></pre>
+                        </div>[3, 4]
+                    </li>
+                </ul>
+                <h4>2.2.3. Exposición de la API de Ollama (Consideraciones):</h4>
+                <ul>
+                    <li>Por defecto, la API de Ollama escucha en `localhost:11434` (`127.0.0.1:11434`).[3]</li>
+                    <li>Si OpenWebUI se ejecuta en el mismo host que Ollama (comunicándose a través de la red interna de Docker o `host.docker.internal`), esta configuración por defecto suele ser suficiente.</li>
+                    <li>Si Ollama se ejecuta en un servidor diferente al de OpenWebUI, o si se necesita acceso directo a la API de Ollama desde otras máquinas en la red, se debe configurar Ollama para que escuche en todas las interfaces (`0.0.0.0`). Esto se puede hacer modificando la unidad de servicio systemd de Ollama (e.g., `/etc/systemd/system/ollama.service`) para incluir `Environment="OLLAMA_HOST=0.0.0.0"` y luego recargando y reiniciando el servicio.[3] En este caso, es crucial asegurar que el firewall del servidor Ollama permita conexiones entrantes al puerto 11434.</li>
+                </ul>
+                <h4>2.2.4. Descarga de Modelos LLM Iniciales:</h4>
+                <ul>
+                    <li>Una vez Ollama esté instalado y en ejecución, se pueden descargar los modelos LLM deseados. Por ejemplo, para descargar Llama 3 (8 mil millones de parámetros):
+                        <div class="code-block">
+                            <button class="copy-button">Copiar</button>
+                            <pre><code>ollama pull llama3:8b</code></pre>
+                        </div>[3, 4]
+                    </li>
+                    <li>Se pueden listar los modelos descargados con `ollama list`.[2]</li>
+                    <li>Es importante seleccionar modelos que se ajusten a la capacidad del hardware (especialmente VRAM de la GPU).</li>
+                </ul>
+            </div>
+
+            <div id="fase3" class="pt-4">
+                <h3>2.3. Fase 3: Instalación y Configuración de OpenWebUI</h3>
+                <p>OpenWebUI proporcionará la interfaz de usuario y la capa API compatible con OpenAI.</p>
+                <h4>2.3.1. Despliegue de OpenWebUI mediante Docker (Recomendado):</h4>
+                <ul>
+                    <li>Docker es el método preferido para desplegar OpenWebUI, ya que simplifica la gestión de dependencias y la configuración.[4, 5]</li>
+                    <li>Existen diferentes etiquetas de imagen Docker según las necesidades:
+                        <ul>
+                            <li>Para servidores con GPU NVIDIA: `ghcr.io/open-webui/open-webui:cuda`.[4]</li>
+                            <li>Para servidores solo con CPU: `ghcr.io/open-webui/open-webui:main`.[4]</li>
+                            <li>También existe una imagen que incluye Ollama: `ghcr.io/open-webui/open-webui:ollama` [8], aunque para esta propuesta se asume una gestión separada de Ollama para mayor flexibilidad.</li>
+                        </ul>
+                    </li>
+                    <li>Comando de ejecución de Docker para OpenWebUI (con GPU, adaptado de [4]):
+                        <div class="code-block">
+                            <button class="copy-button">Copiar</button>
+                            <pre><code>sudo docker run -d -p 8080:8080 \
+    --gpus all \
+    --add-host=host.docker.internal:host-gateway \
+    -v open-webui:/app/backend/data \
+    -e OLLAMA_BASE_URL=http://host.docker.internal:11434 \
+    --name open-webui --restart always \
+    ghcr.io/open-webui/open-webui:cuda</code></pre>
+                        </div>
+                        <strong>Notas sobre el comando:</strong>
+                        <ul>
+                            <li><code>-p 8080:8080</code>: Mapea el puerto 8080 del contenedor al puerto 8080 del host. Este puerto del host será el que Nginx (configurado más adelante) usará como upstream. Se puede cambiar si el 8080 ya está en uso, pero se deberá reflejar en la configuración de Nginx.</li>
+                            <li><code>--gpus all</code>: Permite al contenedor acceder a todas las GPUs disponibles.</li>
+                            <li><code>--add-host=host.docker.internal:host-gateway</code>: Es crucial para que el contenedor OpenWebUI pueda comunicarse con servicios que se ejecutan en el host, como la API de Ollama si está en el mismo servidor.[2, 4]</li>
+                            <li><code>-v open-webui:/app/backend/data</code>: Monta un volumen Docker llamado `open-webui` en la ruta `/app/backend/data` dentro del contenedor. Este paso es <strong>vital</strong> para la persistencia de datos. Sin él, todas las configuraciones, cuentas de usuario, historiales de chat y claves API generadas se perderían si el contenedor se detiene y se elimina, o al actualizar la imagen.[2, 4]</li>
+                            <li><code>-e OLLAMA_BASE_URL=http://host.docker.internal:11434</code>: Indica a OpenWebUI dónde encontrar la API de Ollama. Si Ollama está en otro servidor, se usaría la IP y puerto de ese servidor.</li>
+                            <li><code>--name open-webui</code>: Asigna un nombre al contenedor para facilitar su gestión.</li>
+                            <li><code>--restart always</code>: Asegura que el contenedor se reinicie automáticamente si se detiene inesperadamente o tras un reinicio del servidor.</li>
+                        </ul>
+                    </li>
+                </ul>
+                <h4>2.3.2. Conexión de OpenWebUI con la Instancia de Ollama:</h4>
+                <ul>
+                    <li>La variable de entorno `OLLAMA_BASE_URL` (o `OLLAMA_BASE_URLS` si se utilizan múltiples instancias de Ollama para balanceo de carga, ver sección 2.6.3) en el comando `docker run` de OpenWebUI es el método principal para establecer la conexión.[9, 10]</li>
+                    <li>OpenWebUI intentará conectarse automáticamente a esta URL al iniciarse.[7]</li>
+                    <li>La conexión se puede verificar y gestionar desde la interfaz de OpenWebUI en `Admin Settings > Connections > Ollama` (haciendo clic en el icono de la llave inglesa).[7] Desde aquí también se pueden descargar modelos y ajustar configuraciones relacionadas con Ollama.</li>
+                </ul>
+                <h4>2.3.3. Creación de la Cuenta de Administrador Inicial:</h4>
+                <ul>
+                    <li>Una vez que el contenedor de OpenWebUI esté en ejecución, se puede acceder a la interfaz web a través de la dirección IP del servidor y el puerto expuesto (e.g., `http://&lt;server_ip&gt;:8080`, antes de configurar Nginx como reverse proxy).</li>
+                    <li>El primer usuario que se registre en la instancia de OpenWebUI se convertirá automáticamente en el administrador del sistema.[2, 4] Es fundamental utilizar credenciales seguras para esta cuenta.</li>
+                </ul>
+                <p>La correcta configuración del volumen persistente (<code>-v open-webui:/app/backend/data</code>) no puede subestimarse. Este volumen asegura que todos los datos críticos de la aplicación –incluyendo usuarios, configuraciones de modelos, historiales de chat, y las claves API que se generen– sobrevivan a reinicios, actualizaciones o incluso a la eliminación accidental del contenedor. Para un servicio que se pretende ofrecer a empresas, la integridad y persistencia de los datos es un requisito no negociable.</p>
+            </div>
+
+            <div id="fase4" class="pt-4">
+                <h3>2.4. Fase 4: Configuración del API y Gestión de API Keys</h3>
+                <p>El núcleo de la propuesta de negocio es ofrecer una API compatible con OpenAI, gestionada localmente.</p>
+                <h4>2.4.1. Habilitación de la Generación de API Keys en OpenWebUI (para usuarios individuales):</h4>
+                <ul>
+                    <li>Para que los usuarios de la interfaz OpenWebUI puedan generar sus propias claves API para uso personal (e.g., para scripts o integraciones propias), el administrador debe habilitar esta función.</li>
+                    <li>Esto se hace desde la interfaz de OpenWebUI: `Admin Settings > General`, y activar la opción "Enable API Key".[11]</li>
+                    <li>Una vez habilitado, cada usuario individual podrá generar sus propias claves API desde su perfil: `User Settings > Account > Generate New API Key`.[11, 12] Estas claves se utilizan como Bearer Tokens en las cabeceras de autorización de las solicitudes API.[12]</li>
+                </ul>
+                <h4>2.4.2. Detalles de la API Compatible con OpenAI de OpenWebUI:</h4>
+                <ul>
+                    <li>OpenWebUI expone un endpoint `POST /api/chat/completions` que está diseñado para ser compatible con la API de chat de OpenAI.[12] Esto permite que las aplicaciones cliente que ya están integradas con la API de OpenAI puedan, en teoría, cambiar la URL base y la clave API para usar este servicio local.</li>
+                    <li><strong>Autenticación:</strong> Las solicitudes a esta API requieren un Bearer Token en la cabecera `Authorization`. El token es la clave API generada por el usuario (o por el administrador para un cliente, como se discute más adelante).[11, 12]</li>
+                    <li><strong>Estructura de Solicitud (Request):</strong> La estructura del cuerpo de la solicitud debe seguir el formato de OpenAI, incluyendo parámetros como:
+                        <ul>
+                            <li>`model`: El nombre del modelo a utilizar (debe coincidir con un modelo disponible en Ollama y configurado en OpenWebUI).[13]</li>
+                            <li>`messages`: Un array de objetos de mensaje, cada uno con `role` ("system", "user", "assistant") y `content`.[13, 14]</li>
+                            <li>Otros parámetros comunes como `stream` (boolean, para respuestas en streaming), `temperature`, `max_tokens`, `top_p`, `frequency_penalty`, `presence_penalty`, etc., son generalmente soportados.[13, 14] La documentación de OpenWebUI (`/docs` en la instancia de desarrollo) o la especificación OpenAPI de la API proporcionarán la lista exacta de parámetros compatibles.[12, 15]</li>
+                        </ul>
+                    </li>
+                    <li><strong>Estructura de Respuesta (Response):</strong> La respuesta también sigue el formato de OpenAI, incluyendo campos como `id`, `object` ("chat.completion" o "chat.completion.chunk" para streaming), `created`, `model`, `choices` (un array que contiene el mensaje de respuesta y `finish_reason`), y `usage` (conteo de tokens).[13]</li>
+                    <li><strong>Listado de Modelos Disponibles:</strong> Se puede obtener una lista de los modelos accesibles a través de la API mediante una solicitud `GET /api/models`. Esta solicitud también requiere autenticación con una clave API.[11, 12]</li>
+                </ul>
+                <h4>2.4.3. Implementación de la Gestión Centralizada de API Keys para Clientes Empresariales:</h4>
+                <ul>
+                    <li>Este es un punto <strong>crítico</strong> para el modelo de negocio propuesto. No es suficiente que los usuarios finales (empleados de la empresa cliente) generen sus propias claves. El proveedor del servicio (el implementador de esta solución) necesita la capacidad de generar, listar, y revocar API keys para sus <em>clientes empresariales</em> de forma centralizada.</li>
+                    <li><strong>Capacidades Nativas de OpenWebUI para Gestión de Claves por Administrador:</strong>
+                        <ul>
+                            <li>Investigaciones recientes y discusiones en la comunidad de OpenWebUI indican que se ha estado trabajando activamente en funcionalidades para que los administradores puedan gestionar las claves API de otros usuarios. Esto incluye la propuesta de rutas API específicas [16, 17]:
+                                <ul>
+                                    <li>`POST /api/v1/users/{user_id}/api_key`: Para generar una nueva clave API para un usuario específico.</li>
+                                    <li>`GET /api/v1/users/{user_id}/api_key`: Para recuperar (potencialmente los detalles o la propia clave, aunque esto último es menos seguro si la clave se muestra de nuevo) una clave API existente de un usuario.</li>
+                                    <li>`DELETE /api/v1/users/{user_id}/api_key`: Para eliminar/revocar la clave API de un usuario.</li>
+                                </ul>
+                            </li>
+                            <li>Un Pull Request reciente, PR #14046, titulado `feat(api-keys): implement multi-API key management with selection...` [18], sugiere que esta funcionalidad está en desarrollo activo o ha sido implementada recientemente.</li>
+                            <li><strong>Acción Crítica:</strong> Es imperativo verificar en la última versión estable de OpenWebUI si estas funcionalidades de gestión de claves por administrador están completamente implementadas, son estables, y si son accesibles a través de la interfaz de usuario del administrador o si requieren el uso de scripts para interactuar directamente con estas nuevas rutas API. La documentación oficial de la API (`/docs` en la instancia) o las notas de la versión más reciente deberían confirmar esto.[19]</li>
+                            <li><strong>Procedimiento Potencial (si la funcionalidad está implementada y es estable):</strong>
+                                <ol>
+                                    <li>Crear cuentas de usuario dedicadas en OpenWebUI para cada cliente empresarial (o para cada clave API individual que se quiera vender/asignar).</li>
+                                    <li>Como administrador de la instancia de OpenWebUI, utilizar las nuevas rutas API (o la interfaz de administración, si existe para esta función) para generar una clave API para la cuenta de usuario del cliente.</li>
+                                    <li>Proveer esta clave API generada de forma segura al cliente empresarial.</li>
+                                    <li>Utilizar la ruta API de eliminación (`DELETE`) para revocar el acceso de un cliente cuando sea necesario (e.g., fin de contrato, abuso del servicio).</li>
+                                </ol>
+                            </li>
+                        </ul>
+                    </li>
+                    <li><strong>Almacenamiento Seguro de API Keys Generadas por el Administrador para Clientes:</strong>
+                        <ul>
+                            <li>Cuando OpenWebUI genera una clave API para un usuario, típicamente la muestra una sola vez para que el usuario la copie de forma segura.[11] No está claro si el sistema permite al administrador recuperar la clave original posteriormente. Desde una perspectiva de seguridad, lo ideal es que el sistema no almacene la clave en texto plano ni permita su recuperación por parte del administrador después de la generación inicial.</li>
+                            <li>Si el administrador necesita llevar un registro de qué clave se asignó a qué cliente, estas claves deben manejarse con extrema seguridad. <strong>No se deben almacenar en texto plano.</strong> Se recomienda utilizar un gestor de contraseñas seguro o una solución de "vault" como HashiCorp Vault, que puede ser autoalojado y ofrece almacenamiento seguro de secretos.[20]</li>
+                            <li>Los clientes también deben ser instruidos sobre cómo almacenar y utilizar sus claves API de forma segura.</li>
+                        </ul>
+                    </li>
+                </ul>
+                <p>La viabilidad del modelo de negocio de "ofrecer una alternativa local a ChatGPT usando API Keys" depende de manera fundamental de la madurez y robustez de la funcionalidad de gestión de API keys para <em>clientes</em> dentro de OpenWebUI. Si estas capacidades administrativas son incipientes, experimentales, o carecen de características esenciales como la limitación de tasa (rate limiting) por clave o el seguimiento del uso por clave, el modelo de negocio se debilita considerablemente o requerirá la implementación de soluciones externas más complejas. La API oficial de OpenAI, por ejemplo, proporciona mecanismos sofisticados para gestionar claves, establecer límites de gasto y monitorear el uso, elementos que son cruciales para cualquier servicio comercial de API. Aunque OpenWebUI permite a los usuarios individuales generar sus propias claves para uso personal [11], la capacidad del <em>administrador del servicio</em> para crear, distribuir y controlar claves <em>para otros usuarios (sus clientes)</em> es una característica más avanzada que parece estar en desarrollo o ser reciente.[16, 17, 18] Incluso si se pueden generar claves para los clientes, la falta de características como el rate limiting por clave individual o cuotas de uso específicas por clave [32] significa que no se podría controlar el consumo de manera efectiva, prevenir abusos o implementar modelos de precios basados en el uso utilizando únicamente OpenWebUI. Esta situación podría hacer que la consideración de un API Gateway externo (discutido en la Sección 5) pase de ser una "mejora" a un componente <em>necesario</em>, lo cual añadiría complejidad y potencialmente costos, un factor a sopesar cuidadosamente dado el objetivo de servir a empresas con "necesidades específicas o de baja demanda".</p>
+            </div>
+
+            <div id="fase5" class="pt-4">
+                <h3>2.5. Fase 5: Implementación de Seguridad Básica</h3>
+                <p>La seguridad es primordial, especialmente cuando se manejan datos de clientes y se exponen APIs.</p>
+                <h4>2.5.1. Configuración de Nginx como Reverse Proxy:</h4>
+                <ul>
+                    <li>Instalar Nginx:
+                        <div class="code-block">
+                            <button class="copy-button">Copiar</button>
+                            <pre><code>sudo apt install nginx -y</code></pre>
+                        </div>[4]
+                    </li>
+                    <li>Crear un archivo de configuración de virtual host para OpenWebUI, por ejemplo, en `/etc/nginx/sites-available/openwebui.conf`.[4] Una configuración de ejemplo, adaptada de [4], podría ser:
+                        <div class="code-block">
+                            <button class="copy-button">Copiar</button>
+                            <pre><code>server {
+    listen 80;
+    # Escuchar en IPv6 también si es necesario
+    # listen [::]:80;
+
+    server_name tu-dominio.com; # O la IP del servidor si es solo para uso interno sin DNS
+
+    access_log /var/log/nginx/openwebui_access.log;
+    error_log /var/log/nginx/openwebui_error.log;
+
+    location / {
+        proxy_pass http://127.0.0.1:8080; # Asumiendo que OpenWebUI Docker expone en el puerto 8080 del host
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        # Configuraciones importantes para WebSockets, que OpenWebUI utiliza [8]
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_read_timeout 86400; # Aumentar timeout para conexiones largas si es necesario
+    }
+}</code></pre>
+                        </div>
+                    </li>
+                    <li>Habilitar el sitio creando un enlace simbólico:
+                        <div class="code-block">
+                            <button class="copy-button">Copiar</button>
+                            <pre><code>sudo ln -s /etc/nginx/sites-available/openwebui.conf /etc/nginx/sites-enabled/</code></pre>
+                        </div>[4]
+                    </li>
+                    <li>Probar la configuración de Nginx: `sudo nginx -t`. Si es exitoso, se mostrará `syntax is ok` y `test is successful`.[4]</li>
+                    <li>Reiniciar Nginx para aplicar los cambios: `sudo systemctl restart nginx`.[4]</li>
+                </ul>
+                <h4>2.5.2. Habilitación de HTTPS con SSL/TLS:</h4>
+                <ul>
+                    <li>El cifrado HTTPS es esencial para proteger los datos en tránsito, incluyendo las credenciales de API y el contenido de los prompts/respuestas.</li>
+                    <li><strong>Opción A (Recomendada si se tiene un nombre de dominio público): Certbot con Let's Encrypt.</strong>
+                        <ul>
+                            <li>Instalar Certbot y el plugin de Nginx:
+                                <div class="code-block">
+                                    <button class="copy-button">Copiar</button>
+                                    <pre><code>sudo apt install python3-certbot-nginx -y</code></pre>
+                                </div>[4]
+                            </li>
+                            <li>Obtener e instalar automáticamente un certificado SSL: `sudo certbot --nginx -d tu-dominio.com` (reemplazar `tu-dominio.com` con el dominio real). Certbot modificará la configuración de Nginx para habilitar HTTPS y configurar la renovación automática.[4]</li>
+                        </ul>
+                    </li>
+                    <li><strong>Opción B (Para entornos puramente internos sin dominio público o para pruebas): Certificados Autofirmados.</strong>
+                        <ul>
+                            <li>Generar un certificado SSL autofirmado y una clave privada. Un ejemplo de comando es (adaptado de [21]):
+                                <div class="code-block">
+                                    <button class="copy-button">Copiar</button>
+                                    <pre><code>sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+     -keyout /etc/ssl/private/nginx-selfsigned.key \
+     -out /etc/ssl/certs/nginx-selfsigned.crt \
+     -subj "/CN=tu-dominio-interno.local" # O la IP del servidor</code></pre>
+                                </div>
+                            </li>
+                            <li>Modificar la configuración del virtual host de Nginx para usar este certificado autofirmado y escuchar en el puerto 443 (HTTPS). Se añadiría una sección `server` similar a la anterior, pero con `listen 443 ssl;` y las directivas `ssl_certificate` y `ssl_certificate_key` apuntando a los archivos generados.[21]</li>
+                            <li><strong>Advertencia:</strong> Los navegadores y clientes API mostrarán advertencias de seguridad con certificados autofirmados, ya que no son emitidos por una Autoridad de Certificación (CA) confiable. Los clientes necesitarán configurar sus sistemas para confiar en este certificado o ignorar las advertencias, lo cual no es ideal para un entorno de producción de cara al cliente.</li>
+                        </ul>
+                    </li>
+                </ul>
+                <h4>2.5.3. Configuración Básica de Firewall (UFW - Uncomplicated Firewall):</h4>
+                <ul>
+                    <li>UFW es una herramienta sencilla para gestionar reglas de firewall en Ubuntu/Debian.</li>
+                    <li>Permitir tráfico SSH (esencial para la administración remota): `sudo ufw allow ssh` o `sudo ufw allow 22/tcp`.</li>
+                    <li>Permitir tráfico HTTP y HTTPS (que Nginx estará escuchando): `sudo ufw allow http` (o `80/tcp`) y `sudo ufw allow https` (o `443/tcp`).[4]</li>
+                    <li>Si Ollama está expuesto directamente en otro puerto (e.g., 11434) y necesita ser accesible desde fuera del host, ese puerto también debe permitirse.</li>
+                    <li>Habilitar UFW: `sudo ufw enable`. Confirmar la operación.[3]</li>
+                    <li>Verificar el estado del firewall y las reglas activas: `sudo ufw status verbose`.[3]</li>
+                </ul>
+                <h4>2.5.4. Recomendaciones de Seguridad para la Gestión y Uso de API Keys:</h4>
+                <ul>
+                    <li><strong>No incrustar claves API en el código fuente del cliente:</strong> Las claves deben ser tratadas como secretos y cargadas desde variables de entorno, archivos de configuración protegidos o sistemas de gestión de secretos.[22, 23]</li>
+                    <li><strong>Transmitir claves API únicamente sobre HTTPS:</strong> Para prevenir la interceptación de claves en tránsito.[20, 24]</li>
+                    <li><strong>Principio de Menor Privilegio:</strong> Aunque OpenWebUI podría no tener un sistema de permisos granular para las claves API nativas (más allá del acceso general a la API), si se utiliza un API Gateway, se pueden definir permisos más específicos por clave.</li>
+                    <li><strong>Rotación Periódica de Claves API:</strong> Establecer una política para generar nuevas claves y revocar las antiguas periódicamente (e.g., cada 90-180 días). Esto limita la ventana de oportunidad si una clave se ve comprometida.[20, 22] Los clientes deberán ser notificados para actualizar sus claves.</li>
+                    <li><strong>Monitorización y Auditoría del Uso de Claves:</strong> Registrar las solicitudes API, idealmente asociándolas a la clave utilizada, para detectar actividades anómalas o abusos (ver Sección 2.6.4 y Recomendación 5.2).</li>
+                    <li><strong>Almacenamiento Seguro de Claves por Parte de los Clientes:</strong> Educar a los clientes empresariales sobre las mejores prácticas para proteger las claves API que se les proporcionan.</li>
+                    <li><strong>Revocación Rápida:</strong> Tener un procedimiento claro y rápido para revocar claves API en caso de compromiso o finalización de servicio.[20] Las rutas API de administrador para eliminar claves de usuario en OpenWebUI [16, 17] serían el mecanismo para esto.</li>
+                </ul>
+                <p>La implementación de estas medidas de seguridad básicas es un punto de partida crucial. Sin embargo, es importante entender que la seguridad no es una configuración única, sino un proceso continuo de vigilancia, actualización y adaptación. Dado que el sistema manejará datos potencialmente sensibles (los prompts y respuestas de los clientes) y controlará el acceso a recursos computacionales que pueden ser costosos (los LLMs), una brecha de seguridad podría tener consecuencias significativas, como la exposición de datos o el abuso del servicio con el consiguiente impacto económico. La configuración de HTTPS [4, 21] protege los datos en tránsito, el firewall [3] limita la superficie de ataque expuesta en la red, y seguir las buenas prácticas para la gestión de API keys [20, 22] reduce el riesgo de compromiso de estas credenciales. No obstante, para un servicio de carácter comercial, se requerirá un endurecimiento del sistema más profundo y un monitoreo proactivo para defenderse contra amenazas más avanzadas o para identificar y mitigar vulnerabilidades que puedan surgir en el software subyacente.</p>
+            </div>
+
+            <div id="fase6" class="pt-4">
+                <h3>2.6. Fase 6: Consideraciones de Escalabilidad y Rendimiento Inicial</h3>
+                <p>Para asegurar una buena experiencia de usuario, incluso con baja demanda inicial, es importante optimizar el rendimiento y planificar la escalabilidad.</p>
+                <h4>2.6.1. Configuración de OpenWebUI para Mejorar el Rendimiento:</h4>
+                <ul>
+                    <li><strong>Modelos de Tareas Dedicados:</strong> OpenWebUI realiza varias tareas en segundo plano para mejorar la experiencia del usuario, como la generación automática de títulos para los chats, la creación de etiquetas, el autocompletado de texto mientras se escribe, y la generación de consultas de búsqueda para la función RAG. Estas tareas, si utilizan el mismo modelo LLM principal que se usa para el chat, pueden generar múltiples solicitudes simultáneas y consumir recursos significativos, lo que podría ralentizar la respuesta del chat principal, especialmente en sistemas con recursos limitados.[25]</li>
+                    <li>Para mitigar esto, OpenWebUI permite configurar un modelo LLM diferente, más pequeño y ligero (e.g., Llama 3.2 3B, Qwen2.5 3B, o incluso un endpoint de API externo de bajo costo), específicamente para estas tareas de fondo. Esta configuración se encuentra en `Admin Panel > Settings > Interface > Set Task Model`.[25]</li>
+                    <li><strong>Deshabilitar Funciones de Automatización Innecesarias:</strong> Si ciertas funciones automatizadas, como el autocompletado (que se dispara con cada pulsación de tecla), no son cruciales para los clientes, deshabilitarlas puede reducir significativamente la carga en el modelo y mejorar la capacidad de respuesta general del sistema.[25]</li>
+                </ul>
+                <h4>2.6.2. Configuración de Ollama para la Concurrencia:</h4>
+                <ul>
+                    <li>Ollama ha mejorado su capacidad para manejar solicitudes concurrentes. Dos variables de entorno son clave para ajustar su comportamiento:
+                        <ul>
+                            <li><code>OLLAMA_NUM_PARALLEL</code>: Esta variable controla cuántas solicitudes puede procesar Ollama en paralelo <em>por cada modelo cargado</em>.[26] El valor óptimo dependerá de la capacidad de la GPU (principalmente VRAM y núcleos CUDA) y la CPU. Un valor demasiado alto puede agotar la VRAM rápidamente (ya que cada contexto de solicitud paralela consume memoria adicional) o saturar la capacidad de procesamiento, llevando a una degradación del rendimiento o errores de memoria.</li>
+                            <li><code>OLLAMA_MAX_LOADED_MODELS</code>: Esta variable define cuántos modelos LLM diferentes pueden mantenerse cargados en la memoria (VRAM/RAM) simultáneamente.[26] Esto es útil si se planea ofrecer acceso a múltiples modelos y se desea optimizar el tiempo de carga/descarga de modelos, pero debe equilibrarse con la VRAM disponible.</li>
+                        </ul>
+                    </li>
+                    <li>Es fundamental entender que, aunque Ollama puede procesar múltiples solicitudes, cada solicitud concurrente a un mismo modelo LLM generalmente requiere que se mantenga un contexto de conversación separado en la memoria (preferiblemente VRAM).[27] Esto significa que la concurrencia real estará limitada por la cantidad de VRAM disponible para alojar estos contextos. Las versiones recientes de Ollama, con la introducción de `OLLAMA_NUM_PARALLEL`, representan una mejora significativa para su viabilidad en entornos de producción con múltiples usuarios.[26]</li>
+                </ul>
+                <h4>2.6.3. Opción de Múltiples Backends de Ollama (Balanceo de Carga Básico):</h4>
+                <ul>
+                    <li>OpenWebUI ofrece una funcionalidad nativa para conectarse a múltiples instancias de Ollama y distribuir la carga entre ellas. Esto se configura mediante la variable de entorno `OLLAMA_BASE_URLS` en la configuración de OpenWebUI, donde se especifican las URLs de las diferentes instancias de Ollama separadas por punto y coma.[9, 10]</li>
+                    <li>Ejemplo: `OLLAMA_BASE_URLS=http://ollama-srv1:11434;http://ollama-srv2:11434;http://ollama-srv3:11434`</li>
+                    <li>Esta configuración requiere el despliegue y mantenimiento de múltiples servidores Ollama. Cada uno de estos servidores podría ejecutar los mismos modelos (para balanceo de carga puro) o diferentes modelos (para especialización).</li>
+                    <li><strong>Limitación Importante:</strong> Este es un mecanismo de balanceo de carga a nivel de la aplicación OpenWebUI. Su sofisticación puede ser limitada en comparación con balanceadores de carga dedicados (como HAProxy o Nginx en modo balanceador). La forma exacta en que OpenWebUI distribuye las solicitudes (e.g., round-robin, least connections) no está detallada en la documentación general y podría ser básica.</li>
+                    <li>Si bien la variable `OLLAMA_BASE_URLS` ofrece una vía para distribuir la carga entre varias instancias de Ollama [9, 10], la gestión operativa de estos múltiples backends (asegurar la sincronización de los modelos disponibles en cada instancia, monitorizar la salud y carga individual de cada servidor Ollama, y manejar escenarios de fallo de una de las instancias) recae enteramente en el administrador del sistema. Como se evidencia en discusiones comunitarias [28], los usuarios que implementan arquitecturas de Ollama distribuidas a menudo recurren a soluciones personalizadas o proxies intermedios para lograr un balanceo de carga y una gestión de clúster más robustos. Para un servicio que inicialmente se enfoca en "baja demanda", esta complejidad podría ser innecesaria, pero es una vía de escalabilidad a considerar si la demanda crece significativamente.</li>
+                </ul>
+                <h4>2.6.4. Monitorización Básica del Sistema y del Servicio:</h4>
+                <ul>
+                    <li>Implementar un sistema de monitorización básico es esencial para asegurar la disponibilidad y el rendimiento.</li>
+                    <li><strong>Salud de OpenWebUI:</strong> Utilizar el endpoint `/health` que expone OpenWebUI. Este endpoint no requiere autenticación y devuelve un estado `200 OK` si el servicio está en funcionamiento.[11]</li>
+                    <li><strong>Conectividad de Modelos:</strong> Verificar periódicamente el endpoint `/api/models`. Este endpoint requiere autenticación con una clave API válida y confirma que OpenWebUI puede comunicarse correctamente con los proveedores de modelos configurados (en este caso, Ollama) y listar los modelos disponibles.[11]</li>
+                    <li><strong>Respuesta del Modelo (Verificación Profunda):</strong> Para una prueba más completa, se puede enviar una solicitud de chat simple (e.g., un prompt corto) al endpoint `/api/chat/completions` (autenticado) y verificar que se recibe una respuesta válida del modelo.[11]</li>
+                    <li><strong>Herramientas de Monitorización:</strong> Se puede utilizar una herramienta de monitorización autoalojada como Uptime Kuma para automatizar estas verificaciones de salud y recibir alertas en caso de problemas.[11]</li>
+                    <li><strong>Monitorización de Recursos del Servidor:</strong> Es crucial monitorizar continuamente el uso de CPU, RAM, VRAM (si se usa GPU) y el espacio en disco en el servidor host. Herramientas como `htop`, `nvidia-smi` (para GPUs NVIDIA), y `df` son útiles para verificaciones manuales, mientras que soluciones como Prometheus con Grafana pueden ofrecer dashboards y alertas a largo plazo.</li>
+                </ul>
+            </div>
+        </div>
+
+        <div id="gantt" class="content-section">
+            <h2>3. Diagrama de Gantt del Proyecto</h2>
+            <p>Esta sección presenta el cronograma estimado para la implementación del proyecto. Incluye una tabla que detalla las fases, su duración estimada y la distribución de horas por semana. Adicionalmente, se muestra un gráfico de barras visualizando las horas estimadas para cada fase principal, ofreciendo una perspectiva clara del esfuerzo requerido en cada etapa.</p>
+            <p>Para visualizar la secuencia y duración estimada de las tareas involucradas en la implementación, se propone el siguiente diagrama de Gantt simplificado. Las duraciones son estimativas y pueden variar según la experiencia y los recursos disponibles.</p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Fase del Proyecto</th>
+                        <th>Duración Estimada</th>
+                        <th>Semana 1 (Horas)</th>
+                        <th>Semana 2 (Horas)</th>
+                        <th>Semana 3 (Horas)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>0. Planificación y Diseño (Revisión de esta propuesta)</td>
+                        <td>3 horas</td>
+                        <td>XXX</td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>1. Preparación del Entorno del Servidor</td>
+                        <td>8 horas</td>
+                        <td>XXXXXXXX</td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>2. Instalación y Configuración de Ollama</td>
+                        <td>4 horas</td>
+                        <td>XXXX</td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>3. Instalación y Configuración de OpenWebUI</td>
+                        <td>4 horas</td>
+                        <td></td>
+                        <td>XXXX</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>4. Configuración API y Gestión de API Keys</td>
+                        <td>6 horas</td>
+                        <td></td>
+                        <td>XXXXXX</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>5. Implementación de Seguridad Básica</td>
+                        <td>8 horas</td>
+                        <td></td>
+                        <td>XXXXXXXX</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>6. Configuración de Escalabilidad y Rendimiento Inicial</td>
+                        <td>4 horas</td>
+                        <td></td>
+                        <td></td>
+                        <td>XXXX</td>
+                    </tr>
+                    <tr>
+                        <td>7. Pruebas Integrales del Sistema</td>
+                        <td>16 horas</td>
+                        <td></td>
+                        <td></td>
+                        <td>XXXXXXXXXXXXXXX</td>
+                    </tr>
+                    <tr>
+                        <td>8. Documentación Interna del Sistema</td>
+                        <td>8 horas</td>
+                        <td></td>
+                        <td></td>
+                        <td>XXXXXXXX</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Total Estimado</strong></td>
+                        <td><strong>61 horas</strong></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                </tbody>
+            </table>
+            <p>Este cronograma proporciona una hoja de ruta para la ejecución del proyecto. La fase de "Configuración API y Gestión de API Keys" podría extenderse si la verificación e implementación de la gestión de claves para clientes en OpenWebUI resulta más compleja de lo previsto o requiere soluciones alternativas. Las "Pruebas Integrales" son fundamentales para asegurar la calidad y estabilidad del servicio antes de ofrecerlo a los clientes.</p>
+            
+            <h4>Horas Estimadas por Fase del Proyecto (Gráfico)</h4>
+            <div class="chart-container my-8">
+                <canvas id="ganttChartHoras"></canvas>
+            </div>
+        </div>
+
+        <div id="costos" class="content-section">
+            <h2>4. Estimación de Costos de Mano de Obra</h2>
+            <p>A continuación, se detalla la estimación de costos basada únicamente en la mano de obra para la implementación del proyecto. Se utiliza un valor genérico de $X USD por hora, según lo solicitado, para calcular el costo por fase y el total. Esta tabla le permitirá visualizar la inversión de tiempo y costo asociada a cada etapa del desarrollo.</p>
+            <p>La estimación de costos se basa únicamente en la mano de obra para la implementación, utilizando un valor de $X USD por hora, según la solicitud.</p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Fase del Proyecto</th>
+                        <th>Horas Estimadas</th>
+                        <th>Costo por Fase (USD)</th>
+                        <th>Notas/Suposiciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>0. Planificación y Diseño</td>
+                        <td>3</td>
+                        <td>$3X$</td>
+                        <td>Incluye la revisión y adaptación de esta propuesta.</td>
+                    </tr>
+                    <tr>
+                        <td>1. Preparación del Entorno del Servidor</td>
+                        <td>8</td>
+                        <td>$8X$</td>
+                        <td>Adquisición/configuración de VM/servidor físico, instalación SO, Docker.</td>
+                    </tr>
+                    <tr>
+                        <td>2. Instalación y Configuración de Ollama</td>
+                        <td>4</td>
+                        <td>$4X$</td>
+                        <td>Instalación, configuración servicio, descarga modelos iniciales.</td>
+                    </tr>
+                    <tr>
+                        <td>3. Instalación y Configuración de OpenWebUI</td>
+                        <td>4</td>
+                        <td>$4X$</td>
+                        <td>Despliegue Docker, conexión a Ollama, creación cuenta admin.</td>
+                    </tr>
+                    <tr>
+                        <td>4. Configuración API y Gestión de API Keys</td>
+                        <td>6</td>
+                        <td>$6X$</td>
+                        <td>Habilitación API, pruebas endpoint, investigación e implementación de gestión de claves para clientes. Puede variar.</td>
+                    </tr>
+                    <tr>
+                        <td>5. Implementación de Seguridad Básica</td>
+                        <td>8</td>
+                        <td>$8X$</td>
+                        <td>Configuración Nginx, HTTPS (SSL/TLS), Firewall (UFW).</td>
+                    </tr>
+                    <tr>
+                        <td>6. Configuración de Escalabilidad y Rendimiento Inicial</td>
+                        <td>4</td>
+                        <td>$4X$</td>
+                        <td>Ajuste variables Ollama, configuración de task models en OpenWebUI.</td>
+                    </tr>
+                    <tr>
+                        <td>7. Pruebas Integrales del Sistema</td>
+                        <td>16</td>
+                        <td>$16X$</td>
+                        <td>Pruebas funcionales, de API, de carga básica, de seguridad.</td>
+                    </tr>
+                    <tr>
+                        <td>8. Documentación Interna del Sistema</td>
+                        <td>8</td>
+                        <td>$8X$</td>
+                        <td>Documentar la configuración final, procedimientos operativos y de mantenimiento.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>TOTAL ESTIMADO</strong></td>
+                        <td><strong>61 horas</strong></td>
+                        <td><strong>$61X$</strong></td>
+                        <td></td>
+                    </tr>
+                </tbody>
+            </table>
+            <p>La estimación total de 61 horas supera significativamente la base de 20 horas mencionada como una posibilidad en la consulta inicial. Esta estimación más alta es más realista para un proyecto de esta naturaleza que busca establecer un servicio con un nivel de calidad y seguridad adecuado para empresas, aunque sea para baja demanda. Cada fase implica múltiples pasos técnicos que requieren tiempo no solo para su ejecución, sino también para su verificación y depuración. Fases como la implementación de seguridad (Nginx, HTTPS, firewall) y las pruebas integrales son particularmente consumidoras de tiempo pero absolutamente críticas para la viabilidad y confiabilidad del servicio. Además, la configuración de un sistema robusto para la gestión de API keys para clientes, especialmente si las características nativas de OpenWebUI requieren complementos o scripts personalizados, también puede añadir tiempo al desarrollo. Una subestimación del tiempo podría llevar a una implementación apresurada, con posibles fallos de seguridad o funcionales.</p>
+        </div>
+
+        <div id="recomendaciones" class="content-section">
+            <h2>5. Recomendaciones Técnicas Adicionales</h2>
+            <p>Para potenciar la solución a largo plazo, esta sección ofrece recomendaciones técnicas adicionales. Estas sugerencias abordan aspectos como la gestión avanzada de API Keys, monitorización, estrategias de backup, optimización de modelos LLM, seguridad reforzada y herramientas de gestión. Considerar estas mejoras puede incrementar significativamente la robustez, escalabilidad y facilidad de mantenimiento del servicio.</p>
+            
+            <h3>5.1. Gestión Avanzada de API Keys para Clientes mediante un API Gateway</h3>
+            <ul>
+                <li><strong>Problema Identificado:</strong> La funcionalidad nativa de OpenWebUI para la gestión de API keys generadas por el administrador para otros usuarios (clientes) es una característica relativamente nueva o en desarrollo activo.[16, 17, 18] Podría carecer de funcionalidades avanzadas cruciales para un servicio comercial...[32]</li>
+                <li><strong>Recomendación:</strong> Implementar un <strong>API Gateway autoalojado</strong> como una capa intermedia entre los clientes y el servidor OpenWebUI. Opciones: Kong Gateway [29, 30], Tyk API Gateway [31].</li>
+                <li><strong>Beneficios de un API Gateway:</strong> Gestión centralizada de API Keys, aplicación de políticas de uso (rate limiting, cuotas), seguridad mejorada, logging detallado, desacoplamiento.</li>
+                <li><strong>Consideración:</strong> Añade complejidad. Evaluar si se justifica para "baja demanda". Sin embargo, para un servicio comparable a la API oficial de ChatGPT, es casi indispensable. [33, 34]</li>
+            </ul>
+
+            <h3>5.2. Monitorización y Logging Avanzado</h3>
+            <ul>
+                <li><strong>OpenLIT:</strong> Integrar para observabilidad específica de LLMs en OpenWebUI.[35]</li>
+                <li><strong>Stack ELK o Grafana Loki/Prometheus:</strong> Solución centralizada de logging para todos los componentes.</li>
+            </ul>
+
+            <h3>5.3. Estrategias de Backup y Recuperación</h3>
+            <ul>
+                <li>Realizar backups regulares y automatizados de:
+                    <ul>
+                        <li>Datos persistentes de OpenWebUI (`/app/backend/data`).</li>
+                        <li>Datos de Ollama (modelos descargados).</li>
+                        <li>Configuraciones de Nginx.</li>
+                        <li>Datos del API Gateway (si se implementa).</li>
+                    </ul>
+                </li>
+                <li>Definir un Plan de Recuperación ante Desastres (DRP) básico.</li>
+            </ul>
+
+            <h3>5.4. Selección y Optimización de Modelos LLM</h3>
+            <ul>
+                <li>Evaluar y seleccionar modelos LLM según necesidades del cliente.</li>
+                <li>Considerar el uso de <strong>modelos cuantizados</strong> (e.g., GGUF).[1]</li>
+                <li>Utilizar la funcionalidad de "clonar" modelos en OpenWebUI para personalizaciones.[36]</li>
+            </ul>
+
+            <h3>5.5. Seguridad Reforzada (Endurecimiento del Sistema)</h3>
+            <ul>
+                <li>Auditorías de Seguridad Regulares.</li>
+                <li>Gestión de Vulnerabilidades (mantener software actualizado).</li>
+                <li>Endurecimiento del Servidor (OS Hardening).</li>
+                <li>Protección contra Abuso de API (con API Gateway).</li>
+            </ul>
+
+            <h3>5.6. Interfaz de Línea de Comandos (CLI) o Scripts para Gestión</h3>
+            <ul>
+                <li>Desarrollar scripts (Bash, Python) para automatizar tareas administrativas:
+                    <ul>
+                        <li>Generación/revocación de API keys.</li>
+                        <li>Ejecución de backups.</li>
+                        <li>Monitorización y alertas.</li>
+                        <li>Gestión de usuarios en OpenWebUI.[37]</li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+
+        <div id="conclusion" class="content-section">
+            <h2>6. Conclusión</h2>
+            <p>Esta sección final resume los puntos clave de la propuesta. Reafirma la viabilidad de implementar un servidor LLM autoalojado con OpenWebUI y Ollama como una alternativa robusta para empresas. Se enfatiza la importancia de la gestión de API Keys y las consideraciones de seguridad y escalabilidad para el éxito del servicio, ofreciendo una visión general del potencial de esta solución personalizada.</p>
+            <p>La implementación de un servidor LLM autoalojado utilizando OpenWebUI y Ollama, con la capacidad de generar y administrar claves API, representa una alternativa viable y atractiva a los servicios de API de LLM basados en la nube para empresas con necesidades específicas de control, privacidad o con una demanda moderada. El plan detallado presentado en este informe proporciona una hoja de ruta clara para la instalación, configuración y securización de dicha solución.</p>
+            <p>La viabilidad del modelo de negocio propuesto, que implica ofrecer este sistema como un servicio personalizado con API keys gestionadas para clientes empresariales, depende críticamente de la madurez y robustez de las funcionalidades de gestión de API keys a nivel de administrador dentro de OpenWebUI. Si las capacidades nativas para generar, revocar, y especialmente para controlar el uso (mediante rate limiting y cuotas por clave) son insuficientes, la incorporación de un API Gateway autoalojado se convertirá en un componente esencial, aunque añada complejidad a la arquitectura.</p>
+            <p>La solución está diseñada para comenzar atendiendo a una baja demanda, pero las consideraciones de escalabilidad, como el uso de múltiples backends de Ollama y la optimización del rendimiento, permiten un crecimiento futuro. La seguridad, desde la configuración inicial con HTTPS y firewall hasta las prácticas continuas de endurecimiento y monitorización, debe ser una prioridad constante para proteger tanto la infraestructura como los datos de los clientes.</p>
+            <p>Con una planificación cuidadosa, una ejecución diligente de los pasos descritos y una atención continua al mantenimiento y la seguridad, es posible construir un servicio de LLM on-premises potente, flexible y adaptado a las necesidades del mercado objetivo.</p>
+        </div>
+    </main>
+
+    <script>
+        const sections = document.querySelectorAll('.content-section');
+        const navLinks = document.querySelectorAll('.sidebar-link');
+        const subNavLinks = document.querySelectorAll('.sub-nav-link');
+
+        function updateActiveLink(hash) {
+            navLinks.forEach(link => {
+                if (link.getAttribute('href') === hash || (hash.startsWith('#fase') && link.getAttribute('href') === '#plan')) {
+                    link.classList.add('active');
+                } else {
+                    link.classList.remove('active');
+                }
+            });
+            subNavLinks.forEach(link => {
+                if (link.getAttribute('href') === hash) {
+                    link.classList.add('active');
+                } else {
+                    link.classList.remove('active');
+                }
+            });
+        }
+
+        function showSection(hash) {
+            sections.forEach(section => {
+                if (hash === '#plan' && section.id.startsWith('fase')) {
+                    // Do not hide phases if #plan is clicked, let specific phase links handle it
+                } else if (section.id === hash.substring(1) || (hash.startsWith('#fase') && section.id === 'plan')) {
+                    section.classList.add('active');
+                     if (section.id === 'plan' && hash.startsWith('#fase')) {
+                        const phaseElement = document.querySelector(hash);
+                        if(phaseElement) phaseElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    } else {
+                        section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                } else {
+                    section.classList.remove('active');
+                }
+            });
+            updateActiveLink(hash);
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const initialHash = window.location.hash || '#introduccion';
+            showSection(initialHash);
+
+            if (initialHash === '#gantt') {
+                renderGanttHorasChart();
+            }
+        });
+
+        navLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const targetId = e.target.getAttribute('href');
+                history.pushState(null, null, targetId);
+                showSection(targetId);
+                if (targetId === '#gantt') {
+                    renderGanttHorasChart();
+                }
+            });
+        });
+        
+        subNavLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const targetId = e.target.getAttribute('href');
+                history.pushState(null, null, targetId);
+                showSection(targetId); // Show the main 'plan' section
+                 // Then scroll to the specific phase within the 'plan' section
+                const phaseElement = document.querySelector(targetId);
+                if(phaseElement) {
+                     // Ensure the parent 'plan' section is active
+                    document.getElementById('plan').classList.add('active');
+                    // Scroll the main content area, not the window
+                    document.querySelector('main').scrollTop = phaseElement.offsetTop - document.getElementById('plan').offsetTop;
+                }
+            });
+        });
+
+
+        window.addEventListener('popstate', () => {
+            const currentHash = window.location.hash || '#introduccion';
+            showSection(currentHash);
+            if (currentHash === '#gantt') {
+                renderGanttHorasChart();
+            }
+        });
+
+        const copyButtons = document.querySelectorAll('.copy-button');
+        copyButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const codeBlock = button.nextElementSibling;
+                const code = codeBlock.innerText;
+                navigator.clipboard.writeText(code).then(() => {
+                    button.innerText = 'Copiado!';
+                    setTimeout(() => {
+                        button.innerText = 'Copiar';
+                    }, 2000);
+                }).catch(err => {
+                    console.error('Error al copiar: ', err);
+                });
+            });
+        });
+
+        let ganttHorasChartInstance = null;
+        function renderGanttHorasChart() {
+            const ctx = document.getElementById('ganttChartHoras')?.getContext('2d');
+            if (!ctx) return;
+
+            if (ganttHorasChartInstance) {
+                ganttHorasChartInstance.destroy();
+            }
+
+            const data = {
+                labels: [
+                    "0. Planificación y Diseño",
+                    "1. Preparación del Entorno",
+                    "2. Instalación Ollama",
+                    "3. Instalación OpenWebUI",
+                    "4. Configuración API Keys",
+                    "5. Seguridad Básica",
+                    "6. Escalabilidad Inicial",
+                    "7. Pruebas Integrales",
+                    "8. Documentación Interna"
+                ],
+                datasets: [{
+                    label: 'Horas Estimadas por Fase',
+                    data: [3, 8, 4, 4, 6, 8, 4, 16, 8],
+                    backgroundColor: [
+                        'rgba(251, 191, 36, 0.7)', // amber-400
+                        'rgba(245, 158, 11, 0.7)', // amber-500
+                        'rgba(217, 119, 6, 0.7)',  // amber-600
+                        'rgba(180, 83, 9, 0.7)',   // amber-700
+                        'rgba(146, 64, 14, 0.7)',  // amber-800
+                        'rgba(120, 53, 15, 0.7)',  // amber-900
+                        'rgba(251, 191, 36, 0.6)', 
+                        'rgba(245, 158, 11, 0.6)', 
+                        'rgba(217, 119, 6, 0.6)'
+                    ],
+                    borderColor: [
+                        'rgba(251, 191, 36, 1)',
+                        'rgba(245, 158, 11, 1)',
+                        'rgba(217, 119, 6, 1)',
+                        'rgba(180, 83, 9, 1)',
+                        'rgba(146, 64, 14, 1)',
+                        'rgba(120, 53, 15, 1)',
+                        'rgba(251, 191, 36, 1)',
+                        'rgba(245, 158, 11, 1)',
+                        'rgba(217, 119, 6, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            };
+
+            ganttHorasChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: data,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    indexAxis: 'y',
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Horas Estimadas'
+                            }
+                        },
+                        y: {
+                             ticks: {
+                                autoSkip: false,
+                                callback: function(value, index, values) {
+                                    const label = this.getLabelForValue(value);
+                                    if (label.length > 25) { // Max length before wrapping
+                                        const words = label.split(' ');
+                                        let lines = [''];
+                                        let currentLine = 0;
+                                        words.forEach(word => {
+                                            if ((lines[currentLine] + word).length > 25) {
+                                                currentLine++;
+                                                lines[currentLine] = '';
+                                            }
+                                            lines[currentLine] += word + ' ';
+                                        });
+                                        return lines.map(line => line.trim());
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.dataset.label}: ${context.raw} horas`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
